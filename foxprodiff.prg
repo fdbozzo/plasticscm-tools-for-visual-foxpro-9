@@ -8,7 +8,6 @@ LPARAMETERS tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymb
 
 LOCAL loEx AS EXCEPTION, loDiff AS CL_DIFF OF 'FOXPRODIFF.PRG'
 loDiff = CREATEOBJECT('CL_DIFF')
-loDiff.lDebug	= .T.
 loDiff.PROCESS( @loEx, tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymbolic )
 
 IF _VFP.STARTMODE = 0
@@ -34,13 +33,16 @@ DEFINE CLASS CL_DIFF AS CUSTOM
 		+ [<memberdata name="ccm" display="cCM"/>] ;
 		+ [<memberdata name="cexepath" display="cEXEPath"/>] ;
 		+ [<memberdata name="cplasticpath" display="cPlasticPath"/>] ;
+		+ [<memberdata name="findworkspacefilename" display="FindWorkspaceFileName"/>] ;
 		+ [<memberdata name="ldebug" display="lDebug"/>] ;
 		+ [<memberdata name="process" display="Process"/>] ;
+		+ [<memberdata name="runcommand" display="RunCommand"/>] ;
 		+ [<memberdata name="sourceprocess" display="SourceProcess"/>] ;
 		+ [<memberdata name="destinationprocess" display="DestinationProcess"/>] ;
 		+ [<memberdata name="diffprocess" display="DiffProcess"/>] ;
 		+ [<memberdata name="writelog" display="writeLog"/>] ;
 		+ [</VFPData>]
+
 
 	oShell			= NULL
 	cSys16			= ''
@@ -57,7 +59,7 @@ DEFINE CLASS CL_DIFF AS CUSTOM
 			LOCAL lnExitCode AS INTEGER ;
 				, loEx AS EXCEPTION ;
 				, lcPlasticSCM, lcExtension_b, lcExtension_c, lcExtension_2, lcDestinationExtension, llNotInWorkspace ;
-				, lcMenError ;
+				, lcMenError, lcSourceSymbolicFileName, lcDestinationSymbolicFileName, lcWorkspaceFileName ;
 				, loShell AS WScript.SHELL
 
 			WITH THIS AS CL_DIFF OF 'FOXPRODIFF.PRG'
@@ -73,9 +75,11 @@ DEFINE CLASS CL_DIFF AS CUSTOM
 				.oShell				= CREATEOBJECT("WScript.Shell")
 				loShell				= .oShell
 				.cSys16				= SYS(16)
+				.cSys16				= SUBSTR( .cSys16, AT( GETWORDNUM(.cSys16, 2), .cSys16 ) + LEN( GETWORDNUM(.cSys16, 2) ) + 1 )
 				.writeLog( 'sys(16)			=' + TRANSFORM(.cSys16) )
-				.cEXEPath			= JUSTPATH( SUBSTR( .cSys16, AT( GETWORDNUM(.cSys16, 2), .cSys16 ) + LEN( GETWORDNUM(.cSys16, 2) ) + 1 ) )
+				.cEXEPath			= JUSTPATH( .cSys16 )
 				.writeLog( 'cEXEPath		=' + TRANSFORM(.cEXEPath) )
+				.lDebug				= ( FILE( FORCEEXT(.cSys16, 'LOG') ) )
 				tcSourcePath		= STRTRAN( tcSourcePath, '\\', '\' )
 				tcDestinationPath	= STRTRAN( tcDestinationPath, '\\', '\' )
 				.cPlasticPath		= ''
@@ -88,6 +92,8 @@ DEFINE CLASS CL_DIFF AS CUSTOM
 					.cCM	= STRTRAN( STREXTRACT( lcPlasticSCM, '"', '"', 1, 4 ), 'plastic.exe', 'cm.exe' )
 					.cPlasticPath		= JUSTPATH(.cCM)
 				ENDIF
+				
+				.FindWorkspaceFileName( @lcWorkspaceFileName, tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymbolic )
 
 				lcDestinationExtension	= JUSTEXT(tcDestinationPath)
 				llNotInWorkspace 		= .T.
@@ -127,9 +133,12 @@ DEFINE CLASS CL_DIFF AS CUSTOM
 
 				ENDCASE
 
-				.SourceProcess( lcDestinationExtension, lcExtension_b, lcExtension_c, tcSourceSymbolic, tcSourcePath, tcDestinationPath )
-				llNotInWorkspace  = .DestinationProcess( lcDestinationExtension, lcExtension_b, lcExtension_c, tcDestinationSymbolic, tcDestinationPath )
-				.DiffProcess( lcDestinationExtension, lcExtension_b, lcExtension_c, lcExtension_2, tcSourcePath, tcDestinationPath, llNotInWorkspace )
+				.SourceProcess( lcDestinationExtension, lcExtension_b, lcExtension_c, tcSourceSymbolic ;
+					, tcSourcePath, tcDestinationPath, lcWorkspaceFileName )
+				llNotInWorkspace  = .DestinationProcess( lcDestinationExtension, lcExtension_b, lcExtension_c ;
+					, tcDestinationSymbolic, tcDestinationPath, lcWorkspaceFileName )
+				.DiffProcess( lcDestinationExtension, lcExtension_b, lcExtension_c, lcExtension_2, tcSourcePath ;
+					, tcDestinationPath, llNotInWorkspace )
 			ENDWITH && THIS AS CL_DIFF OF 'FOXPRODIFF.PRG'
 
 		CATCH TO loEx
@@ -154,7 +163,8 @@ DEFINE CLASS CL_DIFF AS CUSTOM
 
 
 	FUNCTION SourceProcess
-		LPARAMETERS tcDestinationExtension, tcExtension_b, tcExtension_c, tcSourceSymbolic, tcSourcePath, tcDestinationPath
+		LPARAMETERS tcDestinationExtension, tcExtension_b, tcExtension_c, tcSourceSymbolic, tcSourcePath ;
+			, tcDestinationPath, tcWorkspaceFileName
 
 		#IF .F.
 			LOCAL THIS AS CL_DIFF OF 'FOXPRODIFF.PRG'
@@ -163,14 +173,12 @@ DEFINE CLASS CL_DIFF AS CUSTOM
 		TRY
 			LOCAL lcSourceSymbolicExtensionReplaced, lcSourceSpecForCatCommand, lcSourcePathExtensionReplaced ;
 				, laSourceSymbolicExtensionReplaced_Splited(1), lcCommand, lnCommandResult, lcSourcePathParsed ;
-				, lcOriginalFileName ;
 				, loShell AS WScript.SHELL
 
 			WITH THIS AS CL_DIFF OF 'FOXPRODIFF.PRG'
 				loShell				= .oShell
 				lnCommandResult		= 0
 				lcSourceSymbolicExtensionReplaced	= FORCEEXT( tcSourceSymbolic, tcExtension_b )
-				lcOriginalFileName	= ''
 
 				* Parse source symbolic when operation is: "Diff with previous revision"
 				IF '@' $ lcSourceSymbolicExtensionReplaced
@@ -187,7 +195,7 @@ DEFINE CLASS CL_DIFF AS CUSTOM
 						.writeLog( '=> Se cambia lcSourceSpecForCatCommand de [' + lcSourceSpecForCatCommand ;
 							+ '] a ["' + FORCEEXT( tcDestinationPath, tcExtension_b) + '#' + SUBSTR(lcSourceSpecForCatCommand,2) + ']' )
 						lcSourceSpecForCatCommand	= '"' + FORCEEXT( tcDestinationPath, tcExtension_b) + '#' + SUBSTR(lcSourceSpecForCatCommand,2)
-						lcOriginalFileName			= tcDestinationPath
+						*tcWorkspaceFileName			= tcDestinationPath
 					ENDIF
 
 				ELSE	&& Parse source symbolic when operation is: "Diff between revision A and revision B"
@@ -204,21 +212,17 @@ DEFINE CLASS CL_DIFF AS CUSTOM
 				*-------------------------------------------------------------------------------
 				* Ejemplo 1:	
 				*-------------------------------------------------------------------------------
-				lcCommand		= .cCM + ' cat ' + lcSourceSpecForCatCommand + ' --file="' + lcSourcePathExtensionReplaced + '"'
-				.writeLog( lcCommand )
-				lnCommandResult		= loShell.RUN( lcCommand, 0, .T. )
-				.writeLog( '	=> retornó ' + TRANSFORM(lnCommandResult) )
+				lcCommand			= .cCM + ' cat ' + lcSourceSpecForCatCommand + ' --file="' + lcSourcePathExtensionReplaced + '"'
+				lnCommandResult		= .RunCommand( lcCommand )
 
 				IF (lnCommandResult == 1)
 					ERROR "There was an error performing the diff operation."
 					*Environment.Exit(0);
 
 				ELSE
-					lcSourcePathParsed	= ' "' + tcSourcePath + '" "0" "0" "0" "0" "0" "0" "' + lcOriginalFileName + '"'
+					lcSourcePathParsed	= ' "' + tcSourcePath + '" "0" "0" "0" "0" "0" "0" "' + tcWorkspaceFileName + '"'
 					lcCommand			= '"' + FORCEPATH( 'foxbin2prg.exe', .cEXEPath ) + '"' + lcSourcePathParsed
-					.writeLog( lcCommand )
-					lnCommandResult		= loShell.RUN( lcCommand, 0, .T. )
-					.writeLog( '	=> retornó ' + TRANSFORM(lnCommandResult) )
+					lnCommandResult		= .RunCommand( lcCommand )
 
 					IF (lnCommandResult == 1)
 						ERROR "Foxbin2prg devolvió un error"
@@ -238,7 +242,8 @@ DEFINE CLASS CL_DIFF AS CUSTOM
 
 
 	FUNCTION DestinationProcess
-		LPARAMETERS tcDestinationExtension, tcExtension_b, tcExtension_c, tcDestinationSymbolic, tcDestinationPath
+		LPARAMETERS tcDestinationExtension, tcExtension_b, tcExtension_c, tcDestinationSymbolic ;
+			, tcDestinationPath, tcWorkspaceFileName
 
 		#IF .F.
 			LOCAL THIS AS CL_DIFF OF 'FOXPRODIFF.PRG'
@@ -262,20 +267,16 @@ DEFINE CLASS CL_DIFF AS CUSTOM
 					lcDestinationPathExtensionReplaced	= FORCEEXT( tcDestinationPath, tcExtension_b )
 
 					lcCommand 			= .cCM + ' cat ' + lcDestinationSpecForCatCommand + ' --file="' + lcDestinationPathExtensionReplaced + '"'
-					.writeLog( lcCommand )
-					lnCommandResult		= loShell.RUN( lcCommand, 0, .T. )
-					.writeLog( '	=> retornó ' + TRANSFORM(lnCommandResult) )
+					lnCommandResult		= .RunCommand( lcCommand )
 
 					IF (lnCommandResult == 1)
 						ERROR "There was an error performing the diff (rev) operation."
 						*Environment.Exit(0);
 
 					ELSE
-						lcDestinationPathParsed	= ' "' + tcDestinationPath + '"'
+						lcDestinationPathParsed	= ' "' + tcDestinationPath + '" "0" "0" "0" "0" "0" "0" "' + tcWorkspaceFileName + '"'
 						lcCommand				= '"' + FORCEPATH( 'foxbin2prg.exe', .cEXEPath ) + '"' + lcDestinationPathParsed
-						.writeLog( lcCommand )
-						lnCommandResult			= loShell.RUN( lcCommand, 0, .T. )
-						.writeLog( '	=> retornó ' + TRANSFORM(lnCommandResult) )
+						lnCommandResult		= .RunCommand( lcCommand )
 
 						IF (lnCommandResult == 1)
 							ERROR "Foxbin2prg devolvió un error"
@@ -285,11 +286,9 @@ DEFINE CLASS CL_DIFF AS CUSTOM
 					llNotInWorkspace	= .T.
 
 				ELSE
-					lcDestinationPathParsed	= ' "' + tcDestinationPath + '"'
-					lcCommand				= '"' + FORCEPATH( 'foxbin2prg.exe', .cEXEPath ) + '"' + lcDestinationPathParsed
-					.writeLog( lcCommand )
-					lnCommandResult			= loShell.RUN( lcCommand, 0, .T. )
-					.writeLog( '	=> retornó ' + TRANSFORM(lnCommandResult) )
+					lcDestinationPathParsed	= ' "' + tcDestinationPath + '" "0" "0" "0" "0" "0" "0" "' + tcWorkspaceFileName + '"'
+					lcCommand			= '"' + FORCEPATH( 'foxbin2prg.exe', .cEXEPath ) + '"' + lcDestinationPathParsed
+					lnCommandResult		= .RunCommand( lcCommand )
 
 					IF (lnCommandResult == 1)
 						ERROR "Foxbin2prg devolvió un error"
@@ -325,14 +324,31 @@ DEFINE CLASS CL_DIFF AS CUSTOM
 				lnCommandResult				= 0
 				lcConvertToTextSource		= '"' + FORCEEXT( tcSourcePath, tcExtension_2 ) + '"'
 				lcConvertToTextDestination	= '"' + FORCEEXT( tcDestinationPath, tcExtension_2 ) + '"'
-				lcArguments					= " -s=" + lcConvertToTextSource + " -d=" + lcConvertToTextDestination
-				lcCommand					= '"' + FORCEPATH( 'mergetool.exe', .cPlasticPath ) + '"' + lcArguments
-				.writeLog( lcCommand )
-				lnCommandResult				= loShell.RUN( lcCommand, 0, .T. )
-				.writeLog( '	=> retornó ' + TRANSFORM(lnCommandResult) )
+				
+				*-- Verifico si existe antes, porque puede que haya ocurrido un error (.ERR)
+				IF FILE(lcConvertToTextSource) AND FILE( lcConvertToTextDestination )
+					lcArguments			= " -s=" + lcConvertToTextSource + " -d=" + lcConvertToTextDestination
+					lcCommand			= '"' + FORCEPATH( 'mergetool.exe', .cPlasticPath ) + '"' + lcArguments
+					lnCommandResult		= .RunCommand( lcCommand )
 
-				IF (lnCommandResult == 1)
-					ERROR "mergetool devolvió un error"
+					IF (lnCommandResult == 1)
+						ERROR "mergetool devolvió un error"
+					ENDIF
+				ELSE	&& Ocurrió un error
+					.writeLog( 'No existe el archivo [' + lcConvertToTextSource + '] o [' +lcConvertToTextDestination  + ']' )
+					DO CASE
+					CASE FILE( '"' + tcSourcePath + '.ERR"' )
+						lcCommand			= 'notepad.exe "' + tcSourcePath + '.ERR"'
+						lnCommandResult		= .RunCommand( lcCommand, 1 )
+
+					CASE FILE( '"' + tcDestinationPath + '.ERR"' )
+						lcCommand			= 'notepad.exe "' + '"' + tcDestinationPath + '.ERR"'
+						lnCommandResult		= .RunCommand( lcCommand, 1 )
+
+					OTHERWISE
+						.writeLog( 'No existen los archivos ["' + tcSourcePath + '.ERR' ;
+							+ '"] y ["' + tcDestinationPath + '"]' )
+					ENDCASE
 				ENDIF
 
 				.writeLog( 'ERASE ' + lcConvertToTextSource )
@@ -360,6 +376,62 @@ DEFINE CLASS CL_DIFF AS CUSTOM
 		ENDTRY
 
 		RETURN
+	ENDFUNC
+
+
+	PROCEDURE FindWorkspaceFileName
+		LPARAMETERS tcWorkspaceFileName, tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymbolic
+
+		TRY
+			LOCAL lcSymbolicFileName
+			tcWorkspaceFileName	= ''
+
+			*-- Intento obtener el nombre original del archivo del workspace, para usarlo en las vistas texto
+			*-- y que no aparezcan los nombres temporales dentro.
+			IF '#' $ tcSourceSymbolic
+				lcSymbolicFileName	= GETWORDNUM( STRTRAN(tcSourceSymbolic, 'rev:', ''), 1, '#' )
+
+				IF NOT EMPTY(lcSymbolicFileName) &&AND FILE(lcSymbolicFileName)
+					tcWorkspaceFileName	= lcSymbolicFileName
+					THIS.writeLog( 'WorkspaceFileName=' + tcWorkspaceFileName )
+					EXIT
+				ENDIF
+			ENDIF
+
+			IF '#' $ tcDestinationSymbolic
+				lcSymbolicFileName	= GETWORDNUM( STRTRAN(tcDestinationSymbolic, 'rev:', ''), 1, '#' )
+
+				IF NOT EMPTY(lcSymbolicFileName) &&AND FILE(lcSymbolicFileName)
+					tcWorkspaceFileName	= lcSymbolicFileName
+					THIS.writeLog( 'WorkspaceFileName=' + tcWorkspaceFileName )
+					EXIT
+				ENDIF
+			ENDIF
+
+			IF '@' $ tcSourceSymbolic
+				lcSymbolicFileName	= tcDestinationPath
+
+				IF NOT EMPTY(lcSymbolicFileName) &&AND FILE(lcSymbolicFileName)
+					tcWorkspaceFileName	= lcSymbolicFileName
+					THIS.writeLog( 'WorkspaceFileName=' + tcWorkspaceFileName )
+					EXIT
+				ENDIF
+			ENDIF
+		ENDTRY
+
+	ENDPROC
+
+
+	FUNCTION RunCommand
+		LPARAMETERS tcCommand, tnWindowType
+
+		LOCAL lnCommandResult
+		tnWindowType		= EVL(tnWindowType,0)
+		THIS.writeLog( tcCommand )
+		lnCommandResult		= THIS.oShell.RUN( tcCommand, tnWindowType, .T. )
+		THIS.writeLog( '	=> retornó ' + TRANSFORM(lnCommandResult) )
+		
+		RETURN lnCommandResult
 	ENDFUNC
 
 
