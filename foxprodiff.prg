@@ -64,6 +64,18 @@ DEFINE CLASS CL_DIFF AS CUSTOM
 
 			WITH THIS AS CL_DIFF OF 'FOXPRODIFF.PRG'
 				STORE '' TO lcPlasticSCM, lcExtension_b, lcExtension_c, lcExtension_2, lcDestinationExtension
+				loEx				= NULL
+				.oShell				= CREATEOBJECT("WScript.Shell")
+				loShell				= .oShell
+				.cSys16				= SYS(16)
+				.cSys16				= SUBSTR( .cSys16, AT( GETWORDNUM(.cSys16, 2), .cSys16 ) + LEN( GETWORDNUM(.cSys16, 2) ) + 1 )
+				.cEXEPath			= JUSTPATH( .cSys16 )
+				.lDebug				= ( FILE( FORCEEXT(.cSys16, 'LOG') ) )
+				tcSourcePath		= STRTRAN( tcSourcePath, '\\', '\' )
+				tcDestinationPath	= STRTRAN( tcDestinationPath, '\\', '\' )
+				.cPlasticPath		= ''
+				lcPlasticSCM		= loShell.RegRead('HKEY_CLASSES_ROOT\plastic\shell\open\command\')
+
 				.writeLog()
 				.writeLog( REPLICATE('#',80) )
 				.writeLog( 'SourcePath			=' + TRANSFORM(tcSourcePath) )
@@ -71,19 +83,8 @@ DEFINE CLASS CL_DIFF AS CUSTOM
 				.writeLog( 'SourceSymbolic		=' + TRANSFORM(tcSourceSymbolic) )
 				.writeLog( 'DestinationSymbolic	=' + TRANSFORM(tcDestinationSymbolic) )
 				.writeLog( REPLICATE('-',80) )
-				loEx				= NULL
-				.oShell				= CREATEOBJECT("WScript.Shell")
-				loShell				= .oShell
-				.cSys16				= SYS(16)
-				.cSys16				= SUBSTR( .cSys16, AT( GETWORDNUM(.cSys16, 2), .cSys16 ) + LEN( GETWORDNUM(.cSys16, 2) ) + 1 )
 				.writeLog( 'sys(16)			=' + TRANSFORM(.cSys16) )
-				.cEXEPath			= JUSTPATH( .cSys16 )
 				.writeLog( 'cEXEPath		=' + TRANSFORM(.cEXEPath) )
-				.lDebug				= ( FILE( FORCEEXT(.cSys16, 'LOG') ) )
-				tcSourcePath		= STRTRAN( tcSourcePath, '\\', '\' )
-				tcDestinationPath	= STRTRAN( tcDestinationPath, '\\', '\' )
-				.cPlasticPath		= ''
-				lcPlasticSCM		= loShell.RegRead('HKEY_CLASSES_ROOT\plastic\shell\open\command\')
 				.writeLog( 'lcPlasticSCM	=' + TRANSFORM(lcPlasticSCM) )
 
 				IF EMPTY( lcPlasticSCM )
