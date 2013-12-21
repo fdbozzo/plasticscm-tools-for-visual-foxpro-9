@@ -1,14 +1,19 @@
 *------------------------------------------------------------------------------
-*-- FOXPRO_SCM.PRG		- Visual FoxPro 9.0 DIFF/MERGE para PlasticSCM
-*-- Fernando D. Bozzo	- 18/12/2013
+*-- FOXPRO_PLASTICSCM_DM.PRG	- Visual FoxPro 9.0 DIFF/MERGE para PlasticSCM
+*-- Fernando D. Bozzo			- 18/12/2013
 *------------------------------------------------------------------------------
-LPARAMETERS tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymbolic
+LPARAMETERS tcTool, tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymbolic
 
 #DEFINE CR_LF	CHR(13) + CHR(10)
 
-LOCAL loEx AS EXCEPTION, loDiff AS CL_SCM_LIB OF 'FOXPRO_SCM.PRG'
-loDiff = CREATEOBJECT('CL_SCM_LIB')
-loDiff.PROCESS( @loEx, tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymbolic )
+LOCAL loEx AS EXCEPTION, loTool AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
+tcTool	= UPPER( EVL( tcTool, 'DIFF' ) )
+loTool	= CREATEOBJECT('CL_SCM_LIB')
+
+IF tcTool = 'DIFF'
+	loTool.P_Diff( @loEx, tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymbolic )
+ELSE
+ENDIF
 
 IF _VFP.STARTMODE = 0
 	RETURN
@@ -35,7 +40,7 @@ DEFINE CLASS CL_SCM_LIB AS CUSTOM
 		+ [<memberdata name="cplasticpath" display="cPlasticPath"/>] ;
 		+ [<memberdata name="findworkspacefilename" display="FindWorkspaceFileName"/>] ;
 		+ [<memberdata name="ldebug" display="lDebug"/>] ;
-		+ [<memberdata name="process" display="Process"/>] ;
+		+ [<memberdata name="p_diff" display="P_Diff"/>] ;
 		+ [<memberdata name="runcommand" display="RunCommand"/>] ;
 		+ [<memberdata name="sourceprocess" display="SourceProcess"/>] ;
 		+ [<memberdata name="destinationprocess" display="DestinationProcess"/>] ;
@@ -52,7 +57,7 @@ DEFINE CLASS CL_SCM_LIB AS CUSTOM
 	cCM				= ''
 
 
-	PROCEDURE PROCESS
+	PROCEDURE P_Diff
 		LPARAMETERS toEx AS EXCEPTION, tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymbolic
 
 		TRY
@@ -62,7 +67,7 @@ DEFINE CLASS CL_SCM_LIB AS CUSTOM
 				, lcMenError, lcSourceSymbolicFileName, lcDestinationSymbolicFileName, lcWorkspaceFileName ;
 				, loShell AS WScript.SHELL
 
-			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_SCM.PRG'
+			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 				STORE '' TO lcPlasticSCM, lcExtension_b, lcExtension_c, lcExtension_2, lcDestinationExtension
 				loEx				= NULL
 				.oShell				= CREATEOBJECT("WScript.Shell")
@@ -140,7 +145,7 @@ DEFINE CLASS CL_SCM_LIB AS CUSTOM
 					, tcDestinationSymbolic, tcDestinationPath, lcWorkspaceFileName )
 				.DiffProcess( lcDestinationExtension, lcExtension_b, lcExtension_c, lcExtension_2, tcSourcePath ;
 					, tcDestinationPath, llNotInWorkspace )
-			ENDWITH && THIS AS CL_SCM_LIB OF 'FOXPRO_SCM.PRG'
+			ENDWITH && THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 
 		CATCH TO loEx
 			lcMenError	= 'CurDir: ' + SYS(5)+CURDIR() + CR_LF ;
@@ -168,7 +173,7 @@ DEFINE CLASS CL_SCM_LIB AS CUSTOM
 			, tcDestinationPath, tcWorkspaceFileName
 
 		#IF .F.
-			LOCAL THIS AS CL_SCM_LIB OF 'FOXPRO_SCM.PRG'
+			LOCAL THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 		#ENDIF
 
 		TRY
@@ -176,7 +181,7 @@ DEFINE CLASS CL_SCM_LIB AS CUSTOM
 				, laSourceSymbolicExtensionReplaced_Splited(1), lcCommand, lnCommandResult, lcSourcePathParsed ;
 				, loShell AS WScript.SHELL
 
-			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_SCM.PRG'
+			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 				loShell				= .oShell
 				lnCommandResult		= 0
 				lcSourceSymbolicExtensionReplaced	= FORCEEXT( tcSourceSymbolic, tcExtension_b )
@@ -229,7 +234,7 @@ DEFINE CLASS CL_SCM_LIB AS CUSTOM
 						ERROR "Foxbin2prg devolvió un error"
 					ENDIF
 				ENDIF
-			ENDWITH &&	THIS AS CL_SCM_LIB OF 'FOXPRO_SCM.PRG'
+			ENDWITH &&	THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 
 		CATCH TO loEx
 			IF _VFP.STARTMODE = 0 AND THIS.lDebug
@@ -247,7 +252,7 @@ DEFINE CLASS CL_SCM_LIB AS CUSTOM
 			, tcDestinationPath, tcWorkspaceFileName
 
 		#IF .F.
-			LOCAL THIS AS CL_SCM_LIB OF 'FOXPRO_SCM.PRG'
+			LOCAL THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 		#ENDIF
 
 		TRY
@@ -256,7 +261,7 @@ DEFINE CLASS CL_SCM_LIB AS CUSTOM
 				, llNotInWorkspace ;
 				, loShell AS WScript.SHELL
 
-			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_SCM.PRG'
+			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 				loShell				= .oShell
 				lnCommandResult		= 0
 
@@ -295,7 +300,7 @@ DEFINE CLASS CL_SCM_LIB AS CUSTOM
 						ERROR "Foxbin2prg devolvió un error"
 					ENDIF
 				ENDIF
-			ENDWITH &&	THIS AS CL_SCM_LIB OF 'FOXPRO_SCM.PRG'
+			ENDWITH &&	THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 
 		CATCH TO loEx
 			IF _VFP.STARTMODE = 0 AND THIS.lDebug
@@ -312,7 +317,7 @@ DEFINE CLASS CL_SCM_LIB AS CUSTOM
 		LPARAMETERS tcDestinationExtension, tcExtension_b, tcExtension_c, tcExtension_2, tcSourcePath, tcDestinationPath, tlNotInWorkspace
 
 		#IF .F.
-			LOCAL THIS AS CL_SCM_LIB OF 'FOXPRO_SCM.PRG'
+			LOCAL THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 		#ENDIF
 
 		TRY
@@ -320,7 +325,7 @@ DEFINE CLASS CL_SCM_LIB AS CUSTOM
 				, lcConvertToTextSource, lcConvertToTextDestination, lcArguments ;
 				, loShell AS WScript.SHELL
 
-			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_SCM.PRG'
+			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 				loShell						= .oShell
 				lnCommandResult				= 0
 				lcConvertToTextSource		= '"' + FORCEEXT( tcSourcePath, tcExtension_2 ) + '"'
@@ -367,7 +372,7 @@ DEFINE CLASS CL_SCM_LIB AS CUSTOM
 					ERASE ( '"' + FORCEEXT( tcDestinationPath, tcExtension_b ) + '"' )
 					ERASE ( tcDestinationPath )
 				ENDIF
-			ENDWITH &&	THIS AS CL_SCM_LIB OF 'FOXPRO_SCM.PRG'
+			ENDWITH &&	THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 
 		CATCH TO loEx
 			IF _VFP.STARTMODE = 0 AND THIS.lDebug
@@ -440,13 +445,13 @@ DEFINE CLASS CL_SCM_LIB AS CUSTOM
 		LPARAMETERS tcText
 
 		#IF .F.
-			LOCAL THIS AS CL_SCM_LIB OF 'FOXPRO_SCM.PRG'
+			LOCAL THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 		#ENDIF
 
 		IF THIS.lDebug
 			TRY
 				tcText	= EVL(tcText,'')
-				STRTOFILE( TRANSFORM(tcText) + CR_LF, FORCEPATH( 'FOXPRO_SCM.log', GETENV("TEMP") ), 1 )
+				STRTOFILE( TRANSFORM(tcText) + CR_LF, FORCEPATH( 'foxpro_plasticscm_dm.log', GETENV("TEMP") ), 1 )
 			CATCH
 			ENDTRY
 		ENDIF
