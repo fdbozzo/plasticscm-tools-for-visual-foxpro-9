@@ -394,7 +394,7 @@ DEFINE CLASS CL_DIFF AS CUSTOM
 
 				IF NOT EMPTY(lcSymbolicFileName) &&AND FILE(lcSymbolicFileName)
 					tcWorkspaceFileName	= lcSymbolicFileName
-					THIS.writeLog( 'WorkspaceFileName=' + tcWorkspaceFileName )
+					THIS.writeLog( 'WorkspaceFileName=' + tcWorkspaceFileName + ' (opc.1)' )
 					EXIT
 				ENDIF
 			ENDIF
@@ -404,7 +404,7 @@ DEFINE CLASS CL_DIFF AS CUSTOM
 
 				IF NOT EMPTY(lcSymbolicFileName) &&AND FILE(lcSymbolicFileName)
 					tcWorkspaceFileName	= lcSymbolicFileName
-					THIS.writeLog( 'WorkspaceFileName=' + tcWorkspaceFileName )
+					THIS.writeLog( 'WorkspaceFileName=' + tcWorkspaceFileName + ' (opc.2)' )
 					EXIT
 				ENDIF
 			ENDIF
@@ -414,7 +414,7 @@ DEFINE CLASS CL_DIFF AS CUSTOM
 
 				IF NOT EMPTY(lcSymbolicFileName) &&AND FILE(lcSymbolicFileName)
 					tcWorkspaceFileName	= lcSymbolicFileName
-					THIS.writeLog( 'WorkspaceFileName=' + tcWorkspaceFileName )
+					THIS.writeLog( 'WorkspaceFileName=' + tcWorkspaceFileName + ' (opc.3)' )
 					EXIT
 				ENDIF
 			ENDIF
