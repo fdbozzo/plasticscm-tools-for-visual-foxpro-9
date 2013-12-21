@@ -28,7 +28,7 @@ IF NOT ISNULL(loEx)
 ENDIF
 
 QUIT
-**********
+*******************************************************************************
 
 
 DEFINE CLASS CL_SCM_LIB AS CUSTOM
