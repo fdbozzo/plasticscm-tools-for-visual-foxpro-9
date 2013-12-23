@@ -13,40 +13,118 @@
 * tcBaseSymbolic			(!v IN    ) Ruta simbólica del archivo base con información del changeset, branch o revisión
 * tcOutputPath				(!v IN    ) Path del archivo de salida generado
 *--------------------------------------------------------------------------------------------------------------
-LPARAMETERS tcTool, tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymbolic ;
-	, tcBasePath, tcBaseSymbolic, tcOutputPath
+LPARAMETERS tcTool, tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymbolic, tcBasePath, tcBaseSymbolic, tcOutputPath
 
 #DEFINE CR_LF	CHR(13) + CHR(10)
 
-LOCAL loEx AS EXCEPTION, loTool AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
-loEx	= NULL
-tcTool	= UPPER( EVL( tcTool, 'DIFF' ) )
-loTool	= CREATEOBJECT('CL_SCM_LIB')
+TRY
+	LOCAL loEx AS EXCEPTION, loTool AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
+	LOCAL lsBuffer, lnAddress, lnBufsize, lnPcount
+	loEx	= NULL
+	tcTool	= UPPER( EVL( tcTool, 'DIFF' ) )
+	loTool	= CREATEOBJECT('CL_SCM_LIB')
+	_SCREEN.AddProperty( 'ExitCode', 0 )
 
-DO CASE
-CASE VARTYPE(loTool) <> 'O'
-	loEx	= CREATEOBJECT("Exception")
+	lnPcount	= PCOUNT()
+	
+	IF lnPcount = 0	&& Fox no los ve... pero están ahí :)
+		* Obtengo la linea completa de comandos
+		* Adaptado de http://www.news2news.com/vfp/?example=51&function=78
+		* Facilitado por Mario Lopez en el foro FoxPro de Google Español - 23/12/2013
+		* https://groups.google.com/d/msg/publicesvfoxpro/llS-kTNrG9M/LA4D3fd152IJ
+		*-----------------------------------------------------------------------------
+		DECLARE INTEGER GetCommandLine IN kernel32
+		DECLARE INTEGER GlobalSize IN kernel32 INTEGER hMem
+		DECLARE RtlMoveMemory IN kernel32 As CopyMemory STRING @Destination, INTEGER Source, INTEGER nLength
 
-CASE tcTool == 'DIFF'
-	loTool.P_Diff( @loEx, tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymbolic )
+		lnAddress = GetCommandLine()  && returns an address in memory
+		lnBufsize = GlobalSize(lnAddress)
 
-CASE tcTool == 'MERGE'
-	loTool.P_Merge( @loEx, tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymbolic, tcBasePath, tcBaseSymbolic, tcOutputPath )
+		* allocating and filling a buffer
+		IF lnBufsize <> 0
+		    lsBuffer = REPLICATE(CHR(0), lnBufsize)
+		    = CopyMemory(@lsBuffer, lnAddress, lnBufsize)
+		ENDIF
 
-OTHERWISE
-	loEx	= CREATEOBJECT("Exception")
-ENDCASE
+		lsBuffer = CHRTRAN(lsBuffer, CHR(0)+'"', " ")
 
-loTool	= NULL
+		FOR I = 1 TO OCCURS("'", lsBuffer) / 2
+			DO CASE
+			CASE I = 1
+				tcTool					= STREXTRACT(lsBuffer, "'", "'", I*2-1, 0)
+			CASE I = 2
+				tcSourcePath			= STREXTRACT(lsBuffer, "'", "'", I*2-1, 0)
+			CASE I = 3
+				tcDestinationPath		= STREXTRACT(lsBuffer, "'", "'", I*2-1, 0)
+			CASE I = 4
+				tcSourceSymbolic		= STREXTRACT(lsBuffer, "'", "'", I*2-1, 0)
+			CASE I = 5
+				tcDestinationSymbolic	= STREXTRACT(lsBuffer, "'", "'", I*2-1, 0)
+			CASE I = 6
+				tcBasePath				= STREXTRACT(lsBuffer, "'", "'", I*2-1, 0)
+			CASE I = 7
+				tcBaseSymbolic			= STREXTRACT(lsBuffer, "'", "'", I*2-1, 0)
+			CASE I = 8
+				tcOutputPath			= STREXTRACT(lsBuffer, "'", "'", I*2-1, 0)
+			ENDCASE
+			lnPcount	= lnPcount + 1
+		ENDFOR
+		
+		RELEASE lsBuffer, lnAddress, lnBufsize
+	ENDIF
 
-IF _VFP.STARTMODE = 0
-	RETURN
-ENDIF
+	IF .F.
+		loTool.lDebug = .T.
+		loTool.writeLog( '---' + PADR( PROGRAM(),77, '-' ) )
+		loTool.writeLog( 'tcTool				=' + (EVL(tcTool,'')) )
+		loTool.writeLog( 'SourcePath			=' + (EVL(tcSourcePath,'')) )
+		loTool.writeLog( 'DestinationPath		=' + (EVL(tcDestinationPath,'')) )
+		loTool.writeLog( 'SourceSymbolic		=' + (EVL(tcSourceSymbolic,'')) )
+		loTool.writeLog( 'DestinationSymbolic	=' + (EVL(tcDestinationSymbolic,'')) )
+		loTool.writeLog( 'BasePath				=' + (EVL(tcBasePath,'')) )
+		loTool.writeLog( 'BaseSymbolic			=' + (EVL(tcBaseSymbolic,'')) )
+		loTool.writeLog( 'OutputPath			=' + (EVL(tcOutputPath,'')) )
+		tcTool = 'ERR'
+		*ERROR 'Error'
+	ENDIF
 
-DECLARE ExitProcess IN Win32API INTEGER ExitCode
+	DO CASE
+	CASE VARTYPE(loTool) <> 'O'
+		loEx	= CREATEOBJECT("Exception")
+
+	CASE tcTool == 'DIFF'
+		loTool.P_Diff( @loEx, tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymbolic )
+
+	CASE tcTool == 'MERGE'
+		loTool.P_Merge( @loEx, tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymbolic, tcBasePath, tcBaseSymbolic, tcOutputPath )
+
+	OTHERWISE
+		loEx	= CREATEOBJECT("Exception")
+	ENDCASE
+
+CATCH TO loEx
+	lcMenError	= 'CurDir: ' + SYS(5)+CURDIR() + CR_LF ;
+		+ 'Error ' + TRANSFORM(loEx.ERRORNO) + ', ' + loEx.MESSAGE + CR_LF ;
+		+ loEx.PROCEDURE + ', line ' + TRANSFORM(loEx.LINENO) + CR_LF ;
+		+ loEx.LINECONTENTS + CR_LF ;
+		+ loEx.USERVALUE
+	loTool.writeLog( lcMenError )
+
+FINALLY
+	loTool	= NULL
+ENDTRY
 
 IF NOT ISNULL(loEx)
 	loEx	= NULL
+	_SCREEN.AddProperty( 'ExitCode', 1 )
+ENDIF
+
+IF _VFP.STARTMODE <= 1
+	RETURN
+ENDIF
+
+IF NOT ISNULL(loEx)
+	DECLARE ExitProcess IN Win32API INTEGER ExitCode
 	ExitProcess(1)
 ENDIF
 
@@ -104,36 +182,32 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		SET SAFETY OFF
 		SET TALK OFF
 		SET NOTIFY OFF
-		THIS.writeLog( '---' + PROGRAM() + '----------' )
+		THIS.writeLog()
+		THIS.writeLog( REPLICATE('#',80) )
+		THIS.writeLog( '---' + PADR( PROGRAM(),77, '-' ) )
 	ENDPROC
 
 
 	PROCEDURE DESTROY
 		IF NOT EMPTY(THIS.cTextLog)
-			THIS.writeLog( '---' + PROGRAM() + '----------' )
-			STRTOFILE( THIS.cTextLog, FORCEPATH( 'foxpro_plasticscm_dm.log', GETENV("TEMP") ), 1 )
+			THIS.writeLog( '---' + PADR( PROGRAM(),77, '-' ) )
+			STRTOFILE( THIS.cTextLog + CR_LF, FORCEPATH( 'foxpro_plasticscm_dm.log', GETENV("TEMP") ), 1 )
 		ENDIF
 	ENDPROC
 
 
 	PROCEDURE Initialize
-		LPARAMETERS tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymbolic ;
-			, tcBasePath, tcBaseSymbolic, tcOutputPath
+		LPARAMETERS tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymbolic, tcBasePath, tcBaseSymbolic, tcOutputPath
 
 		WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
-			.writeLog()
-			.writeLog( REPLICATE('#',80) )
-			.writeLog( '---' + PROGRAM() + '----------' )
-			.writeLog( 'SourcePath			=' + TRANSFORM(tcSourcePath) )
-			.writeLog( 'DestinationPath		=' + TRANSFORM(tcDestinationPath) )
-			.writeLog( 'SourceSymbolic		=' + TRANSFORM(tcSourceSymbolic) )
-			.writeLog( 'DestinationSymbolic	=' + TRANSFORM(tcDestinationSymbolic) )
-			
-			IF NOT EMPTY(tcBasePath)
-				.writeLog( 'BasePath			=' + TRANSFORM(tcBasePath) )
-				.writeLog( 'BaseSymbolic		=' + TRANSFORM(tcBaseSymbolic) )
-				.writeLog( 'OutputPath			=' + TRANSFORM(tcOutputPath) )
-			ENDIF
+			.writeLog( '---' + PADR( PROGRAM(),77, '-' ) )
+			.writeLog( 'SourcePath			=' + TRANSFORM(EVL(tcSourcePath,'')) )
+			.writeLog( 'DestinationPath		=' + TRANSFORM(EVL(tcDestinationPath,'')) )
+			.writeLog( 'SourceSymbolic		=' + TRANSFORM(EVL(tcSourceSymbolic,'')) )
+			.writeLog( 'DestinationSymbolic	=' + TRANSFORM(EVL(tcDestinationSymbolic,'')) )
+			.writeLog( 'BasePath			=' + TRANSFORM(EVL(tcBasePath,'')) )
+			.writeLog( 'BaseSymbolic		=' + TRANSFORM(EVL(tcBaseSymbolic,'')) )
+			.writeLog( 'OutputPath			=' + TRANSFORM(EVL(tcOutputPath,'')) )
 
 			IF NOT .l_Initialized
 				LOCAL lcPlasticSCM ;
@@ -146,6 +220,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				.cEXEPath		= JUSTPATH( .cSys16 )
 				.lDebug			= ( FILE( FORCEEXT( .cSys16, 'LOG' ) ) )
 				.cPlasticPath	= ''
+				loShell			= .oShell
 				lcPlasticSCM	= loShell.RegRead('HKEY_CLASSES_ROOT\plastic\shell\open\command\')
 				.writeLog( REPLICATE('-',80) )
 				.writeLog( 'sys(16)			=' + TRANSFORM(.cSys16) )
@@ -185,8 +260,8 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				, lcMenError, lcSourceSymbolicFileName, lcDestinationSymbolicFileName, lcWorkspaceFileName
 
 			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
-				STORE '' TO lcExtension_b, lcExtension_c, lcExtension_2, lcDestinationExtension
-				.writeLog( '---' + PROGRAM() + '----------' )
+				STORE '' TO lcWorkspaceFileName, lcExtension_b, lcExtension_c, lcExtension_2, lcDestinationExtension
+				.writeLog( '---' + PADR( PROGRAM(),77, '-' ) )
 				loEx				= NULL
 				tcSourcePath		= STRTRAN( tcSourcePath, '\\', '\' )
 				tcDestinationPath	= STRTRAN( tcDestinationPath, '\\', '\' )
@@ -210,7 +285,6 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 		CATCH TO toEx
 			lcMenError	= 'CurDir: ' + SYS(5)+CURDIR() + CR_LF ;
-				+ 'Sys16: ' + SYS(16) + CR_LF ;
 				+ 'Error ' + TRANSFORM(toEx.ERRORNO) + ', ' + toEx.MESSAGE + CR_LF ;
 				+ toEx.PROCEDURE + ', line ' + TRANSFORM(toEx.LINENO) + CR_LF ;
 				+ toEx.LINECONTENTS + CR_LF ;
@@ -240,8 +314,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		* tcBaseSymbolic			(!v IN    ) Ruta simbólica del archivo base con información del changeset, branch o revisión
 		* tcOutputPath				(!v IN    ) Path del archivo de salida generado
 		*--------------------------------------------------------------------------------------------------------------
-		LPARAMETERS toEx AS EXCEPTION, tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymbolic ;
-			, tcBasePath, tcBaseSymbolic, tcOutputPath
+		LPARAMETERS toEx AS EXCEPTION, tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymbolic, tcBasePath, tcBaseSymbolic, tcOutputPath
 
 		TRY
 			LOCAL lnExitCode AS INTEGER ;
@@ -251,20 +324,21 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				, lcTextMergeResult
 
 			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
-				STORE '' TO lcExtension_b, lcExtension_c, lcExtension_2, lcDestinationExtension, lcTextMergeResult
-				.writeLog( '---' + PROGRAM() + '----------' )
+				STORE '' TO lcWorkspaceFileName, lcExtension_b, lcExtension_c, lcExtension_2, lcDestinationExtension, lcTextMergeResult
+				.writeLog( '---' + PADR( PROGRAM(),77, '-' ) )
 				loEx				= NULL
 				tcSourcePath		= STRTRAN( tcSourcePath, '\\', '\' )
+				tcBasePath			= STRTRAN( tcBasePath, '\\', '\' )
 				tcDestinationPath	= STRTRAN( tcDestinationPath, '\\', '\' )
 
-				.Initialize( tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymbolic ;
-					, tcBasePath, tcBaseSymbolic, tcOutputPath )
+				.Initialize( tcSourcePath, tcDestinationPath, tcSourceSymbolic, tcDestinationSymbolic, tcBasePath, tcBaseSymbolic, tcOutputPath )
 
 				lcDestinationExtension	= JUSTEXT(tcDestinationPath)
+				lcWorkspaceFileName		= tcDestinationPath
 
 				.GetSecondaryExtensions( lcDestinationExtension, @lcExtension_b, @lcExtension_c, @lcExtension_2 )
 
-				.SourceProcess( lcDestinationExtension, lcExtension_b, lcExtension_c, tcSourceSymbolic, tcSourcePath, tcDestinationPath, lcWorkspaceFileName )
+				.SourceProcessForMerge( lcDestinationExtension, lcExtension_b, lcExtension_c, tcSourceSymbolic, tcSourcePath, tcDestinationPath, lcWorkspaceFileName )
 				.BaseProcessForMerge( lcDestinationExtension, lcExtension_b, lcExtension_c, tcBaseSymbolic, tcBasePath, lcWorkspaceFileName )
 				.DestinationProcessForMerge( lcDestinationExtension, lcExtension_b, lcExtension_c, tcDestinationSymbolic, tcDestinationPath, lcWorkspaceFileName )
 				lcTextMergeResult	= .MergeProcess( lcDestinationExtension, lcExtension_b, lcExtension_c, lcExtension_2, tcSourcePath, tcBasePath, tcDestinationPath, tcOutputPath )
@@ -276,7 +350,6 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 		CATCH TO toEx
 			lcMenError	= 'CurDir: ' + SYS(5)+CURDIR() + CR_LF ;
-				+ 'Sys16: ' + SYS(16) + CR_LF ;
 				+ 'Error ' + TRANSFORM(toEx.ERRORNO) + ', ' + toEx.MESSAGE + CR_LF ;
 				+ toEx.PROCEDURE + ', line ' + TRANSFORM(toEx.LINENO) + CR_LF ;
 				+ toEx.LINECONTENTS + CR_LF ;
@@ -317,9 +390,9 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				, laSourceSymbolicExtensionReplaced_Splited(1), lcCommand, lnCommandResult, lcSourcePathParsed
 
 			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
-				.writeLog( '---' + PROGRAM() + '----------' )
+				.writeLog( '---' + PADR( PROGRAM(),77, '-' ) )
 				lnCommandResult		= 0
-				lcSourceSymbolicExtensionReplaced	= FORCEEXT( tcSourceSymbolic, tcExtension_b )
+				lcSourceSymbolicExtensionReplaced	= STRTRAN( tcSourceSymbolic, '.' + tcDestinationExtension, '.' + tcExtension_b )
 
 				* Parse source symbolic when operation is: "Diff with previous revision"
 				IF '@' $ lcSourceSymbolicExtensionReplaced
@@ -334,8 +407,8 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 						*-- Cuando se hace un MERGE y no se confirman los cambios, el DIFF no devuelve
 						*-- el nombre del archivo en SourceFile, sino en DestinationFile
 						.writeLog( '=> Se cambia lcSourceSpecForCatCommand de [' + lcSourceSpecForCatCommand ;
-							+ '] a ["' + FORCEEXT( tcDestinationPath, tcExtension_b) + '#' + SUBSTR(lcSourceSpecForCatCommand,2) + ']' )
-						lcSourceSpecForCatCommand	= '"' + FORCEEXT( tcDestinationPath, tcExtension_b) + '#' + SUBSTR(lcSourceSpecForCatCommand,2)
+							+ '] a ["' + STRTRAN( tcDestinationPath, '.' + tcDestinationExtension, '.' + tcExtension_b) + '#' + SUBSTR(lcSourceSpecForCatCommand,2) + ']' )
+						lcSourceSpecForCatCommand	= '"' + STRTRAN( tcDestinationPath, '.' + tcDestinationExtension, '.' + tcExtension_b) + '#' + SUBSTR(lcSourceSpecForCatCommand,2)
 					ENDIF
 
 				ELSE	&& Parse source symbolic when operation is: "Diff between revision A and revision B"
@@ -347,7 +420,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 					lcSourceSpecForCatCommand	= '"' + laSourceSymbolicExtensionReplaced_Splited[1] + '"'
 				ENDIF
 
-				lcSourcePathExtensionReplaced	= FORCEEXT( tcSourcePath, tcExtension_b )
+				lcSourcePathExtensionReplaced	= STRTRAN( tcSourcePath, '.' + tcDestinationExtension, '.' + tcExtension_b )
 
 				*-------------------------------------------------------------------------------
 				* Ejemplo 1:	"C:\Program Files\PlasticSCM5\client\cm.exe" cat "c:\DESA\foxbin2prg\foxbin2prg.pjt" --file="C:\Temp\ff3bd392-3464-47d1-b096-734a08d46fd9.pjt"
@@ -404,9 +477,9 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				, laSourceSymbolicExtensionReplaced_Splited(1), lcCommand, lnCommandResult, lcSourcePathParsed
 
 			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
-				.writeLog( '---' + PROGRAM() + '----------' )
+				.writeLog( '---' + PADR( PROGRAM(),77, '-' ) )
 				lnCommandResult		= 0
-				lcSourceSymbolicExtensionReplaced	= FORCEEXT( tcSourceSymbolic, tcExtension_b )
+				lcSourceSymbolicExtensionReplaced	= STRTRAN( tcSourceSymbolic, tcDestinationExtension, tcExtension_b )
 
 				*-------------------------------------------------------------------------------
 				* Ejemplo:	sourcesymbolic="c:\DESA\foxbin2prg\foxbin2prg.pjt#/main/v1.15p1#cs:62"
@@ -415,7 +488,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				lcSourceSpecForCatCommand	= '"' + laSourceSymbolicExtensionReplaced_Splited[1] + '#' ;
 					+ laSourceSymbolicExtensionReplaced_Splited[3] + '"'
 
-				lcSourcePathExtensionReplaced	= FORCEEXT( tcSourcePath, tcExtension_b )
+				lcSourcePathExtensionReplaced	= STRTRAN( tcSourcePath, '.' + tcDestinationExtension, '.' + tcExtension_b )
 
 				*-------------------------------------------------------------------------------
 				* Ejemplo:	lcCommand="C:\Program Files\PlasticSCM5\client\cm.exe" cat "c:\DESA\foxbin2prg\foxbin2prg.pjt" --file="C:\Temp\ff3bd392-3464-47d1-b096-734a08d46fd9.pjt"
@@ -470,9 +543,9 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				, laBaseSymbolicExtensionReplaced_Splited(1), lcCommand, lnCommandResult, lcBasePathParsed
 
 			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
-				.writeLog( '---' + PROGRAM() + '----------' )
+				.writeLog( '---' + PADR( PROGRAM(),77, '-' ) )
 				lnCommandResult		= 0
-				lcBaseSymbolicExtensionReplaced	= FORCEEXT( tcBaseSymbolic, tcExtension_b )
+				lcBaseSymbolicExtensionReplaced	= STRTRAN( tcBaseSymbolic, '.' + tcDestinationExtension, '.' + tcExtension_b )
 
 				*-------------------------------------------------------------------------------
 				* Ejemplo:	basesymbolic="c:\DESA\foxbin2prg\foxbin2prg.pjt#/main/v1.15p1#cs:62"
@@ -481,7 +554,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				lcBaseSpecForCatCommand	= '"' + laBaseSymbolicExtensionReplaced_Splited[1] + '#' ;
 					+ laBaseSymbolicExtensionReplaced_Splited[3] + '"'
 
-				lcBasePathExtensionReplaced	= FORCEEXT( tcBasePath, tcExtension_b )
+				lcBasePathExtensionReplaced	= STRTRAN( tcBasePath, '.' + tcDestinationExtension, '.' + tcExtension_b )
 
 				*-------------------------------------------------------------------------------
 				* Ejemplo:	lcCommand="C:\Program Files\PlasticSCM5\client\cm.exe" cat "c:\DESA\foxbin2prg\foxbin2prg.pjt" --file="C:\Temp\ff3bd392-3464-47d1-b096-734a08d46fd9.pjt"
@@ -538,15 +611,15 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				, llNotInWorkspace
 
 			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
-				.writeLog( '---' + PROGRAM() + '----------' )
+				.writeLog( '---' + PADR( PROGRAM(),77, '-' ) )
 				lnCommandResult		= 0
 
 				* Parse destination symbolic when operation is: "Diff between revision A and revision B"
 				IF "rev:" $ tcDestinationSymbolic
-					lcDestinationSymbolicExtensionReplaced = FORCEEXT( tcDestinationSymbolic, tcExtension_b )
+					lcDestinationSymbolicExtensionReplaced = STRTRAN( tcDestinationSymbolic, '.' + tcDestinationExtension, '.' + tcExtension_b )
 					ALINES( laDestinationSymbolicExtensionReplaced_Splited, lcDestinationSymbolicExtensionReplaced, 4, "rev:" )
 					lcDestinationSpecForCatCommand		= '"' + laDestinationSymbolicExtensionReplaced_Splited[1] + '"'
-					lcDestinationPathExtensionReplaced	= FORCEEXT( tcDestinationPath, tcExtension_b )
+					lcDestinationPathExtensionReplaced	= STRTRAN( tcDestinationPath, '.' + tcDestinationExtension, '.' + tcExtension_b )
 
 					lcCommand 			= .cCM + ' cat ' + lcDestinationSpecForCatCommand + ' --file="' + lcDestinationPathExtensionReplaced + '"'
 					lnCommandResult		= .RunCommand( lcCommand )
@@ -609,7 +682,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 			LOCAL lcCommand, lnCommandResult, lcDestinationPathParsed
 
 			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
-				.writeLog( '---' + PROGRAM() + '----------' )
+				.writeLog( '---' + PADR( PROGRAM(),77, '-' ) )
 				lnCommandResult		= 0
 
 				lcDestinationPathParsed	= ' "' + tcDestinationPath + '" "0" "0" "0" "0" "0" "0" "' + tcWorkspaceFileName + '"'
@@ -656,10 +729,10 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				, lcConvertToTextSource, lcConvertToTextDestination, lcArguments
 
 			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
-				.writeLog( '---' + PROGRAM() + '----------' )
+				.writeLog( '---' + PADR( PROGRAM(),77, '-' ) )
 				lnCommandResult				= 0
-				lcConvertToTextSource		= '"' + FORCEEXT( tcSourcePath, tcExtension_2 ) + '"'
-				lcConvertToTextDestination	= '"' + FORCEEXT( tcDestinationPath, tcExtension_2 ) + '"'
+				lcConvertToTextSource		= '"' + STRTRAN( tcSourcePath, tcExtension_2 ) + '"'
+				lcConvertToTextDestination	= '"' + STRTRAN( tcDestinationPath, '.' + tcDestinationExtension, '.' + tcExtension_2 ) + '"'
 
 				*-- Verifico si existe antes, porque puede que haya ocurrido un error (.ERR)
 				IF FILE(lcConvertToTextSource) AND FILE( lcConvertToTextDestination )
@@ -689,12 +762,12 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				ENDIF
 
 				.DeleteFile( lcConvertToTextSource )
-				.DeleteFile( '"' + FORCEEXT( tcSourcePath, tcExtension_b ) + '"' )
+				.DeleteFile( '"' + STRTRAN( tcSourcePath, '.' + tcDestinationExtension, '.' + tcExtension_b ) + '"' )
 				.DeleteFile( tcSourcePath )
 
 				IF tlNotInWorkspace
 					.DeleteFile( lcConvertToTextDestination )
-					.DeleteFile( '"' + FORCEEXT( tcDestinationPath, tcExtension_b ) + '"' )
+					.DeleteFile( '"' + STRTRAN( tcDestinationPath, '.' + tcDestinationExtension, '.' + tcExtension_b ) + '"' )
 					.DeleteFile( tcDestinationPath )
 				ENDIF
 			ENDWITH &&	THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
@@ -735,11 +808,11 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				, ltTimePreMerge, ltTimePostMerge, laFileInfo(1,5)
 
 			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
-				.writeLog( '---' + PROGRAM() + '----------' )
+				.writeLog( '---' + PADR( PROGRAM(),77, '-' ) )
 				lnCommandResult				= 0
-				lcConvertToTextSource		= '"' + FORCEEXT( tcSourcePath, tcExtension_2 ) + '"'
-				lcConvertToTextBase			= '"' + FORCEEXT( tcBasePath, tcExtension_2 ) + '"'
-				lcConvertToTextDestination	= '"' + FORCEEXT( tcDestinationPath, tcExtension_2 ) + '"'
+				lcConvertToTextSource		= '"' + STRTRAN( tcSourcePath, '.' + tcDestinationExtension, '.' + tcExtension_2 ) + '"'
+				lcConvertToTextBase			= '"' + STRTRAN( tcBasePath, '.' + tcDestinationExtension, '.' + tcExtension_2 ) + '"'
+				lcConvertToTextDestination	= '"' + STRTRAN( tcDestinationPath, '.' + tcDestinationExtension, '.' + tcExtension_2 ) + '"'
 
 				ADIR( laFileInfo, tcDestinationPath )
 				ltTimePreMerge	= EVALUATE( '{^' + DTOC(laFileInfo(1,3)) + ' ' + TIME() + '}' )
@@ -760,15 +833,15 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 					*-- Borrar Source
 					.DeleteFile( lcConvertToTextSource )
-					.DeleteFile( '"' + FORCEEXT( tcSourcePath, tcExtension_b ) + '"' )
+					.DeleteFile( '"' + STRTRAN( tcSourcePath, '.' + tcDestinationExtension, '.' + tcExtension_b ) + '"' )
 					IF NOT EMPTY(tcExtension_c)
-						.DeleteFile( '"' + FORCEEXT( tcSourcePath, tcExtension_c ) + '"' )
+						.DeleteFile( '"' + STRTRAN( tcSourcePath, '.' + tcDestinationExtension, '.' + tcExtension_c ) + '"' )
 					ENDIF
 					*-- Borrar Base
 					.DeleteFile( lcConvertToTextBase )
-					.DeleteFile( '"' + FORCEEXT( tcBasePath, tcExtension_b ) + '"' )
+					.DeleteFile( '"' + STRTRAN( tcBasePath, '.' + tcDestinationExtension, '.' + tcExtension_b ) + '"' )
 					IF NOT EMPTY(tcExtension_c)
-						.DeleteFile( '"' + FORCEEXT( tcBasePath, tcExtension_c ) + '"' )
+						.DeleteFile( '"' + STRTRAN( tcBasePath, '.' + tcDestinationExtension, '.' + tcExtension_c ) + '"' )
 					ENDIF
 
 					* Check if the text merge has been succesfully performed
@@ -835,17 +908,17 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 			LOCAL lcDestinationPath_b, lcDestinationPath_c, lcCommand, lnCommandResult, lcBinarytMergeResult ;
 				, loEx as Exception
 
-			lcDestinationPath_b	= '"' + FORCEEXT( tcDestinationPath, tcExtension_b ) + '"'
-			lcDestinationPath_c	= '"' + FORCEEXT( tcDestinationPath, tcExtension_c ) + '"'
+			lcDestinationPath_b	= '"' + STRTRAN( tcDestinationPath, '.' + tcDestinationExtension, '.' + tcExtension_b ) + '"'
+			lcDestinationPath_c	= '"' + STRTRAN( tcDestinationPath, '.' + tcDestinationExtension, '.' + tcExtension_c ) + '"'
 
 			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
-				.writeLog( '---' + PROGRAM() + '----------' )
+				.writeLog( '---' + PADR( PROGRAM(),77, '-' ) )
 				.ChangeFileAttribute( tcDestinationPath, '-R' )
-				.ChangeFileAttribute( tcDestinationPath_b, '-R' )
-				.ChangeFileAttribute( tcDestinationPath_c, '-R' )
+				.ChangeFileAttribute( lcDestinationPath_b, '-R' )
+				.ChangeFileAttribute( lcDestinationPath_c, '-R' )
 				.DeleteFile(tcDestinationPath)
-				.DeleteFile(tcDestinationPath_b)
-				.DeleteFile(tcDestinationPath_c)
+				.DeleteFile(lcDestinationPath_b)
+				.DeleteFile(lcDestinationPath_c)
 
 				*-- Regenera el BIN (PJX,VCX,SCX,etc)
 				lcCommand			= '"' + FORCEPATH( 'foxbin2prg.exe', .cEXEPath ) + '"' + tcTextMergeResult
@@ -943,38 +1016,38 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		STORE '' TO tcExtension_b, tcExtension_c, tcExtension_2
 
 		DO CASE
-		CASE tcDestinationExtension = "pjx"
+		CASE tcPrimaryExtension = "pjx"
 			tcExtension_b	= "pjt"
 			tcExtension_2	= "pj2"
 
-		CASE tcDestinationExtension = "vcx"
+		CASE tcPrimaryExtension = "vcx"
 			tcExtension_b	= "vct"
 			tcExtension_2	= "vc2"
 
-		CASE tcDestinationExtension = "scx"
+		CASE tcPrimaryExtension = "scx"
 			tcExtension_b	= "sct"
 			tcExtension_2	= "sc2"
 
-		CASE tcDestinationExtension = "frx"
+		CASE tcPrimaryExtension = "frx"
 			tcExtension_b	= "frt"
 			tcExtension_2	= "fr2"
 
-		CASE tcDestinationExtension = "lbx"
+		CASE tcPrimaryExtension = "lbx"
 			tcExtension_b	= "lbt"
 			tcExtension_2	= "lb2"
 
-		CASE tcDestinationExtension = "dbf"
+		CASE tcPrimaryExtension = "dbf"
 			tcExtension_b	= "fpt"
 			tcExtension_c	= "cdx"	&& Ver como tratar esto cuando hay, o no, un CDX.
 			tcExtension_2	= "db2"
 
-		CASE tcDestinationExtension = "dbc"
+		CASE tcPrimaryExtension = "dbc"
 			tcExtension_b	= "dct"
 			tcExtension_c	= "dcx"
 			tcExtension_2	= "dc2"
 
 		OTHERWISE
-			ERROR 'Extensión [' + TRANSFORM(tcDestinationExtension) + '] no soportada!'
+			ERROR 'Extensión [' + TRANSFORM(tcPrimaryExtension) + '] no soportada!'
 
 		ENDCASE
 	ENDPROC
@@ -1059,16 +1132,14 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 			LOCAL THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 		#ENDIF
 
-		IF THIS.lDebug
-			TRY
-				tcText	= EVL(tcText,'')
-				IF EVL(tnAppend,0) = 0
-					tcText	= CR_LF + tcText
-				ENDIF
-				THIS.cTextLog	= THIS.cTextLog + tcText
-			CATCH
-			ENDTRY
-		ENDIF
+		TRY
+			tcText	= EVL(tcText,'')
+			IF EVL(tnAppend,0) = 0
+				tcText	= CR_LF + tcText
+			ENDIF
+			THIS.cTextLog	= THIS.cTextLog + tcText
+		CATCH
+		ENDTRY
 
 		RETURN
 	ENDFUNC
