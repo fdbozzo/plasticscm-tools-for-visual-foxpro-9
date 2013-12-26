@@ -661,7 +661,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				ENDIF
 
 				IF THIS.lDebug
-					MESSAGEBOX( 'FoxBin2prg se le envió el archivo Origen [' + tcSourcePath + ']' + CR_LF ;
+					*MESSAGEBOX( 'FoxBin2prg se le envió el archivo Origen [' + tcSourcePath + ']' + CR_LF ;
 						+ '(Ya se generó el PJ2. Ver si el archivo está en el directorio Origen)' ;
 						, 0+64+4096 ;
 						, 'PUNTO DE CONTROL EN "' + PROGRAM() + '"' ;
@@ -735,7 +735,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				ENDIF
 
 				IF THIS.lDebug
-					MESSAGEBOX( 'FoxBin2prg se le envió el archivo Base [' + tcBasePath + ']' + CR_LF ;
+					*MESSAGEBOX( 'FoxBin2prg se le envió el archivo Base [' + tcBasePath + ']' + CR_LF ;
 						+ '(Ya se generó el PJ2. Ver si el archivo está en el directorio Base)' ;
 						, 0+64+4096 ;
 						, 'PUNTO DE CONTROL EN "' + PROGRAM() + '"' ;
@@ -862,7 +862,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				ENDIF
 
 				IF THIS.lDebug
-					MESSAGEBOX( 'FoxBin2prg se le envió el archivo destino [' + tcDestinationPath + ']' + CR_LF ;
+					*MESSAGEBOX( 'FoxBin2prg se le envió el archivo destino [' + tcDestinationPath + ']' + CR_LF ;
 						+ '(Ya se generó el PJ2. Ver si el archivo está en el directorio Destino)' ;
 						, 0+64+4096 ;
 						, 'PUNTO DE CONTROL EN "' + PROGRAM() + '"' ;
@@ -1025,7 +1025,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 					* Check if the text merge has been succesfully performed
 					IF THIS.lDebug
-						MESSAGEBOX( 'Fecha del archivo destino [' + tcDestinationPath + '] = ' + TRANSFORM(ltTimePreMerge) + CR_LF ;
+						*MESSAGEBOX( 'Fecha del archivo destino [' + tcDestinationPath + '] = ' + TRANSFORM(ltTimePreMerge) + CR_LF ;
 							+ 'Fecha del archivo Resultado del merge [' + lcConvertToTextOutput + '] = ' + TRANSFORM(ltTimePostMerge) + CR_LF ;
 							+ '(Ya se hizo el Merge. Ver si el archivo Resultado sigue estando y el Destino sigue con la misma fecha/hora)' ;
 							, 0+64+4096 ;
@@ -1124,7 +1124,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				ENDIF
 
 				IF THIS.lDebug
-					MESSAGEBOX( 'FoxBin2prg se le envió el archivo Resultado [' + tcTextMergeResult + ']' + CR_LF ;
+					*MESSAGEBOX( 'FoxBin2prg se le envió el archivo Resultado [' + tcTextMergeResult + ']' + CR_LF ;
 						+ '(Ya se regeneró el PJX. Ver si el archivo está en el directorio Resultado)' ;
 						, 0+64+4096 ;
 						, 'PUNTO DE CONTROL EN "' + PROGRAM() + '"' ;
@@ -1148,7 +1148,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				*.MoveFile( lcBinarytMergeResult, tcOutputPath )
 
 				IF THIS.lDebug
-					MESSAGEBOX( 'Finalmente se moverán los archivos Resultado, así:' + CR_LF ;
+					*MESSAGEBOX( 'Finalmente se moverán los archivos Resultado, así:' + CR_LF ;
 						+ 'Copiar [' + lcBinarytMergeResult + '] a [' + tcDestinationPath + ']' + CR_LF ;
 						+ 'Mover [' + tcTextMergeResult + '] a [' + lcDestinationPath_2 + ']' + CR_LF ;
 						+ 'Mover [' + lcBinarytMergeResult_b + '] a [' + lcDestinationPath_b + ']' + CR_LF ;
@@ -1159,7 +1159,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 						, 600000 )
 				ENDIF
 
-				.CopyFile( lcBinarytMergeResult, tcDestinationPath )	&& PJX,VCX,SCX,etc. YA LO HIZO PLASTIC!??
+				.CopyFile( lcBinarytMergeResult, tcDestinationPath )	&& PJX,VCX,SCX,etc.
 				.MoveFile( tcTextMergeResult, lcDestinationPath_2 )
 				IF NOT EMPTY(lcDestinationPath_b)
 					.MoveFile( lcBinarytMergeResult_b, lcDestinationPath_b )
@@ -1170,7 +1170,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 
 				IF THIS.lDebug
-					MESSAGEBOX( 'Se borró el archivo Output [' + tcOutputPath + ']' + CR_LF ;
+					*MESSAGEBOX( 'Se borró el archivo Output [' + tcOutputPath + ']' + CR_LF ;
 						+ 'y se renombró el archivo Resultado del Merge [' + lcBinarytMergeResult + '] como nuevo Output' + CR_LF ;
 						+ '( Ver el nuevo archivo Output [' + tcOutputPath + '] )' ;
 						, 0+64+4096 ;
