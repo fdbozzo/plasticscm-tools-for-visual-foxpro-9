@@ -24,10 +24,10 @@ TRY
 	loEx	= NULL
 	*tcTool	= UPPER( EVL( tcTool, 'DIFF' ) )
 	loTool	= CREATEOBJECT('CL_SCM_LIB')
-	_SCREEN.AddProperty( 'ExitCode', 0 )
+	_SCREEN.ADDPROPERTY( 'ExitCode', 0 )
 
 	lnPcount	= PCOUNT()
-	
+
 	IF lnPcount <= 1	&& Fox no los ve... pero están ahí :)
 		* Obtengo la linea completa de comandos
 		* Adaptado de http://www.news2news.com/vfp/?example=51&function=78
@@ -35,16 +35,16 @@ TRY
 		* https://groups.google.com/d/msg/publicesvfoxpro/llS-kTNrG9M/LA4D3fd152IJ
 		*-----------------------------------------------------------------------------
 		DECLARE INTEGER GetCommandLine IN kernel32
-		DECLARE INTEGER GlobalSize IN kernel32 INTEGER hMem
-		DECLARE RtlMoveMemory IN kernel32 As CopyMemory STRING @Destination, INTEGER Source, INTEGER nLength
+		DECLARE INTEGER GlobalSize IN kernel32 INTEGER HMEM
+		DECLARE RtlMoveMemory IN kernel32 AS CopyMemory STRING @Destination, INTEGER SOURCE, INTEGER nLength
 
 		lnAddress = GetCommandLine()  && returns an address in memory
 		lnBufsize = GlobalSize(lnAddress)
 
 		* allocating and filling a buffer
 		IF lnBufsize <> 0
-		    lsBuffer = REPLICATE(CHR(0), lnBufsize)
-		    = CopyMemory(@lsBuffer, lnAddress, lnBufsize)
+			lsBuffer = REPLICATE(CHR(0), lnBufsize)
+			= CopyMemory(@lsBuffer, lnAddress, lnBufsize)
 		ENDIF
 
 		lsBuffer = CHRTRAN(lsBuffer, CHR(0)+'"', " ")
@@ -52,11 +52,11 @@ TRY
 
 		FOR I = 1 TO OCCURS("'", lsBuffer) / 2
 			*loTool.writeLog( '- Se asignará [' + TRANSFORM( STREXTRACT(lsBuffer, "'", "'", I*2-1, 0) ) ;
-				+ '] a [' + TRANSFORM( ('P' + TRANSFORM(I,'@L ##') ) ) + ']' )
+			+ '] a [' + TRANSFORM( ('P' + TRANSFORM(I,'@L ##') ) ) + ']' )
 			STORE STREXTRACT(lsBuffer, "'", "'", I*2-1, 0) TO ('P' + TRANSFORM(I,'@L ##'))
 			lnPcount	= lnPcount + 1
 		ENDFOR
-		
+
 		RELEASE lsBuffer, lnAddress, lnBufsize
 		CLEAR DLLS 'GetCommandLine', 'GlobalSize', 'RtlMoveMemory'
 	ENDIF
@@ -86,10 +86,10 @@ TRY
 		loEx	= CREATEOBJECT("Exception")
 
 	CASE lcOperation == 'CHECKIN'
-		loTool.P_Checkin( @loEx )
+		loTool.P_Checkin( @loEx, P02, P03, P04 )
 
 	CASE lcOperation == 'CHECKOUT'
-		loTool.P_Checkout( @loEx )
+		loTool.P_Checkout( @loEx, P02 )
 
 	CASE lcOperation == 'DIFF'
 		lcSourcePath			= P02
@@ -126,7 +126,7 @@ ENDTRY
 
 IF NOT ISNULL(loEx)
 	loEx	= NULL
-	_SCREEN.AddProperty( 'ExitCode', 1 )
+	_SCREEN.ADDPROPERTY( 'ExitCode', 1 )
 ENDIF
 
 IF _VFP.STARTMODE <= 1
@@ -165,12 +165,14 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		+ [<memberdata name="l_initialized" display="l_Initialized"/>] ;
 		+ [<memberdata name="mergeprocess" display="MergeProcess"/>] ;
 		+ [<memberdata name="movefile" display="MoveFile"/>] ;
+		+ [<memberdata name="normalizarcapitalizacionarchivos" display="normalizarCapitalizacionArchivos"/>] ;
 		+ [<memberdata name="ofso" display="oFSO"/>] ;
 		+ [<memberdata name="oshell" display="oShell"/>] ;
 		+ [<memberdata name="p_checkin" display="P_Checkin"/>] ;
 		+ [<memberdata name="p_checkout" display="P_Checkout"/>] ;
 		+ [<memberdata name="p_diff" display="P_Diff"/>] ;
 		+ [<memberdata name="p_merge" display="P_Merge"/>] ;
+		+ [<memberdata name="renamefile" display="RenameFile"/>] ;
 		+ [<memberdata name="runcommand" display="RunCommand"/>] ;
 		+ [<memberdata name="sourceprocessfordiff" display="SourceProcessForDiff"/>] ;
 		+ [<memberdata name="sourceprocessformerge" display="SourceProcessForMerge"/>] ;
@@ -266,10 +268,10 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		* PARÁMETROS:				(!=Obligatorio | ?=Opcional) (@=Pasar por referencia | v=Pasar por valor) (IN/OUT)
 		* toEx						(?@    OUT) Objeto con información del error
 		*--------------------------------------------------------------------------------------------------------------
-		LPARAMETERS toEx AS EXCEPTION
+		LPARAMETERS toEx AS EXCEPTION, P02, P03, P04
 
 		TRY
-			LOCAL lcMenError, lcStdIn ;
+			LOCAL lcMenError, lcStdIn, laStdIn(1,3), laLineas(1), I ;
 				, loFSO AS Scripting.FileSystemObject ;
 				, loStdIn AS Scripting.TextStream ;
 				, loStdOut AS Scripting.TextStream ;
@@ -282,23 +284,35 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				.Initialize()
 
 				loFSO	= .oFSO
-				loStdIn = loFSO.GetStandardStream(0)	&& Standard Input
-				*.writeLog( 'StdIn: --------------------' )
 
-				TRY
+				IF EMPTY(P02) OR EMPTY(P03) OR EMPTY(P04)
+					loStdIn = loFSO.GetStandardStream(0)	&& Standard Input
+					*.writeLog( 'StdIn: --------------------' )
+
 					lcStdIn	= loStdIn.ReadAll()
-				CATCH
-					lcStdIn	= ''
-				FINALLY
-					.writeLog( lcStdIn )
-					.writeLog( '' )
-				ENDTRY
+				ELSE
+					lcStdIn	= P02 + ' "' + P03 + '" ' + P04 + CR_LF
+				ENDIF
 
-				*TRY
-				*	loStdOut = loFSO.GetStandardStream(1)	&& Standard Output
-				*	loStdOut.Write( lcStdIn )
-				*CATCH
-				*ENDTRY
+				.writeLog( lcStdIn )
+
+				* Estructura a leer de ejemplo:								=> c.1	c.2-------------------------------------	c.3
+				*	CH "c:\DESA\FileName_Caps" DIR							=>	CH	c:\DESA\FileName_Caps						DIR
+				*	AD "c:\DESA\FileName_Caps\CONFIG" DIR					=>	AD	c:\DESA\FileName_Caps\CONFIG				DIR
+				*	AD "c:\DESA\FileName_Caps\CONFIG\config.fpw" FILE		=>	AD	c:\DESA\FileName_Caps\CONFIG\config.fpw		FILE
+
+				FOR I = 1 TO ALINES(laLineas, lcStdIn, 1+4 )
+					IF ALINES( laStdIn, laLineas(I), 1, ["] ) > 0 THEN
+						.writeLog( '[' + laStdIn(1,1) + '] [' + laStdIn(1,2) + '] [' + laStdIn(1,3) + ']' )
+						IF laStdIn(1,1) = 'AD' AND laStdIn(1,3) = 'FILE'
+							*.writeLog( [=> laStdIn(1,1) = 'AD' AND laStdIn(1,3) = 'FILE'] )
+							.normalizarCapitalizacionArchivos( laStdIn(1,2) )
+						ELSE
+							*.writeLog( [La condición no se cumplió] )
+						ENDIF
+					ENDIF
+				ENDFOR
+
 			ENDWITH && THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 
 		CATCH TO toEx WHEN toEx.MESSAGE = '0'
@@ -317,8 +331,9 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 		FINALLY
 			IF VARTYPE(loStdIn) = 'O'
-				loStdIn.Close()
+				loStdIn.CLOSE()
 			ENDIF
+			THIS.writeLog( '' )
 		ENDTRY
 
 		RETURN
@@ -332,7 +347,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		* PARÁMETROS:				(!=Obligatorio | ?=Opcional) (@=Pasar por referencia | v=Pasar por valor) (IN/OUT)
 		* toEx						(?@    OUT) Objeto con información del error
 		*--------------------------------------------------------------------------------------------------------------
-		LPARAMETERS toEx AS EXCEPTION
+		LPARAMETERS toEx AS EXCEPTION, P02
 
 		TRY
 			LOCAL lcMenError, lcStdIn ;
@@ -348,17 +363,16 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				.Initialize()
 
 				loFSO	= .oFSO
-				loStdIn = loFSO.GetStandardStream(0)	&& Standard Input
-				*.writeLog( 'StdIn: --------------------' )
 
-				TRY
+				IF EMPTY(P02)
+					loStdIn = loFSO.GetStandardStream(0)	&& Standard Input
+					*.writeLog( 'StdIn: --------------------' )
 					lcStdIn	= loStdIn.ReadAll()
-				CATCH
-					lcStdIn	= ''
-				FINALLY
-					.writeLog( lcStdIn )
-					.writeLog( '' )
-				ENDTRY
+				ELSE
+					lcStdIn	= P02 + CR_LF
+				ENDIF
+
+				.writeLog( lcStdIn )
 
 				*TRY
 				*	loStdOut = loFSO.GetStandardStream(1)	&& Standard Output
@@ -383,8 +397,9 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 		FINALLY
 			IF VARTYPE(loStdIn) = 'O'
-				loStdIn.Close()
+				loStdIn.CLOSE()
 			ENDIF
+			THIS.writeLog( '' )
 		ENDTRY
 
 		RETURN
@@ -662,10 +677,10 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 				IF THIS.lDebug
 					*MESSAGEBOX( 'FoxBin2prg se le envió el archivo Origen [' + tcSourcePath + ']' + CR_LF ;
-						+ '(Ya se generó el PJ2. Ver si el archivo está en el directorio Origen)' ;
-						, 0+64+4096 ;
-						, 'PUNTO DE CONTROL EN "' + PROGRAM() + '"' ;
-						, 600000 )
+					+ '(Ya se generó el PJ2. Ver si el archivo está en el directorio Origen)' ;
+					, 0+64+4096 ;
+					, 'PUNTO DE CONTROL EN "' + PROGRAM() + '"' ;
+					, 600000 )
 				ENDIF
 			ENDWITH &&	THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 
@@ -736,10 +751,10 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 				IF THIS.lDebug
 					*MESSAGEBOX( 'FoxBin2prg se le envió el archivo Base [' + tcBasePath + ']' + CR_LF ;
-						+ '(Ya se generó el PJ2. Ver si el archivo está en el directorio Base)' ;
-						, 0+64+4096 ;
-						, 'PUNTO DE CONTROL EN "' + PROGRAM() + '"' ;
-						, 600000 )
+					+ '(Ya se generó el PJ2. Ver si el archivo está en el directorio Base)' ;
+					, 0+64+4096 ;
+					, 'PUNTO DE CONTROL EN "' + PROGRAM() + '"' ;
+					, 600000 )
 				ENDIF
 			ENDWITH &&	THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 
@@ -863,10 +878,10 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 				IF THIS.lDebug
 					*MESSAGEBOX( 'FoxBin2prg se le envió el archivo destino [' + tcDestinationPath + ']' + CR_LF ;
-						+ '(Ya se generó el PJ2. Ver si el archivo está en el directorio Destino)' ;
-						, 0+64+4096 ;
-						, 'PUNTO DE CONTROL EN "' + PROGRAM() + '"' ;
-						, 600000 )
+					+ '(Ya se generó el PJ2. Ver si el archivo está en el directorio Destino)' ;
+					, 0+64+4096 ;
+					, 'PUNTO DE CONTROL EN "' + PROGRAM() + '"' ;
+					, 600000 )
 				ENDIF
 			ENDWITH &&	THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 
@@ -1026,11 +1041,11 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 					* Check if the text merge has been succesfully performed
 					IF THIS.lDebug
 						*MESSAGEBOX( 'Fecha del archivo destino [' + tcDestinationPath + '] = ' + TRANSFORM(ltTimePreMerge) + CR_LF ;
-							+ 'Fecha del archivo Resultado del merge [' + lcConvertToTextOutput + '] = ' + TRANSFORM(ltTimePostMerge) + CR_LF ;
-							+ '(Ya se hizo el Merge. Ver si el archivo Resultado sigue estando y el Destino sigue con la misma fecha/hora)' ;
-							, 0+64+4096 ;
-							, 'PUNTO DE CONTROL EN "' + PROGRAM() + '"' ;
-							, 600000 )
+						+ 'Fecha del archivo Resultado del merge [' + lcConvertToTextOutput + '] = ' + TRANSFORM(ltTimePostMerge) + CR_LF ;
+						+ '(Ya se hizo el Merge. Ver si el archivo Resultado sigue estando y el Destino sigue con la misma fecha/hora)' ;
+						, 0+64+4096 ;
+						, 'PUNTO DE CONTROL EN "' + PROGRAM() + '"' ;
+						, 600000 )
 					ENDIF
 					*IF ltTimePreMerge == ltTimePostMerge
 					*	.DeleteFile( lcConvertToTextDestination )
@@ -1094,7 +1109,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		TRY
 			LOCAL lcDestinationPath_2, lcDestinationPath_b, lcDestinationPath_c, lcCommand, lnCommandResult ;
 				, lcBinarytMergeResult, lcBinarytMergeResul_b, lcBinarytMergeResult_c ;
-				, loEx as Exception
+				, loEx AS EXCEPTION
 
 			STORE '' TO lcDestinationPath_2, lcDestinationPath_b, lcDestinationPath_c, lcCommand, lnCommandResult ;
 				, lcBinarytMergeResult, lcBinarytMergeResul_b, lcBinarytMergeResult_c
@@ -1125,12 +1140,12 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 				IF THIS.lDebug
 					*MESSAGEBOX( 'FoxBin2prg se le envió el archivo Resultado [' + tcTextMergeResult + ']' + CR_LF ;
-						+ '(Ya se regeneró el PJX. Ver si el archivo está en el directorio Resultado)' ;
-						, 0+64+4096 ;
-						, 'PUNTO DE CONTROL EN "' + PROGRAM() + '"' ;
-						, 600000 )
+					+ '(Ya se regeneró el PJX. Ver si el archivo está en el directorio Resultado)' ;
+					, 0+64+4096 ;
+					, 'PUNTO DE CONTROL EN "' + PROGRAM() + '"' ;
+					, 600000 )
 				ENDIF
-				
+
 				* Restore file names using the initial format
 				*(ver lo de la capitalización de tcDestinationPath con RENAME, para Extensión, ExtB y ExtC)
 
@@ -1149,14 +1164,14 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 				IF THIS.lDebug
 					*MESSAGEBOX( 'Finalmente se moverán los archivos Resultado, así:' + CR_LF ;
-						+ 'Copiar [' + lcBinarytMergeResult + '] a [' + tcDestinationPath + ']' + CR_LF ;
-						+ 'Mover [' + tcTextMergeResult + '] a [' + lcDestinationPath_2 + ']' + CR_LF ;
-						+ 'Mover [' + lcBinarytMergeResult_b + '] a [' + lcDestinationPath_b + ']' + CR_LF ;
-						+ 'Mover [' + lcBinarytMergeResult_c + '] a [' + lcDestinationPath_c + ']' + CR_LF ;
-						+ '(Comprobarlo luego de dar Enter)' ;
-						, 0+64+4096 ;
-						, 'PUNTO DE CONTROL EN "' + PROGRAM() + '"' ;
-						, 600000 )
+					+ 'Copiar [' + lcBinarytMergeResult + '] a [' + tcDestinationPath + ']' + CR_LF ;
+					+ 'Mover [' + tcTextMergeResult + '] a [' + lcDestinationPath_2 + ']' + CR_LF ;
+					+ 'Mover [' + lcBinarytMergeResult_b + '] a [' + lcDestinationPath_b + ']' + CR_LF ;
+					+ 'Mover [' + lcBinarytMergeResult_c + '] a [' + lcDestinationPath_c + ']' + CR_LF ;
+					+ '(Comprobarlo luego de dar Enter)' ;
+					, 0+64+4096 ;
+					, 'PUNTO DE CONTROL EN "' + PROGRAM() + '"' ;
+					, 600000 )
 				ENDIF
 
 				.CopyFile( lcBinarytMergeResult, tcDestinationPath )	&& PJX,VCX,SCX,etc.
@@ -1171,11 +1186,11 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 				IF THIS.lDebug
 					*MESSAGEBOX( 'Se borró el archivo Output [' + tcOutputPath + ']' + CR_LF ;
-						+ 'y se renombró el archivo Resultado del Merge [' + lcBinarytMergeResult + '] como nuevo Output' + CR_LF ;
-						+ '( Ver el nuevo archivo Output [' + tcOutputPath + '] )' ;
-						, 0+64+4096 ;
-						, 'PUNTO DE CONTROL EN "' + PROGRAM() + '"' ;
-						, 600000 )
+					+ 'y se renombró el archivo Resultado del Merge [' + lcBinarytMergeResult + '] como nuevo Output' + CR_LF ;
+					+ '( Ver el nuevo archivo Output [' + tcOutputPath + '] )' ;
+					, 0+64+4096 ;
+					, 'PUNTO DE CONTROL EN "' + PROGRAM() + '"' ;
+					, 600000 )
 				ENDIF
 
 			ENDWITH &&	THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
@@ -1347,6 +1362,57 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 	ENDFUNC
 
 
+	PROCEDURE normalizarCapitalizacionArchivos
+		*--------------------------------------------------------------------------------------------------------------
+		* NORMALIZA Y RENOMBRA EL ARCHIVO INDICADO
+		*--------------------------------------------------------------------------------------------------------------
+		* PARÁMETROS:				(!=Obligatorio | ?=Opcional) (@=Pasar por referencia | v=Pasar por valor) (IN/OUT)
+		* tcFileName				(!v IN    ) Nombre del archivo a normalizar
+		*--------------------------------------------------------------------------------------------------------------
+		LPARAMETERS tcFilename
+
+		TRY
+			LOCAL lcPath, lcEXE_CAPS, lcOutputFile ;
+				, loFSO AS Scripting.FileSystemObject
+			lcPath		= JUSTPATH(THIS.cSys16)
+			lcEXE_CAPS	= FORCEPATH( 'filename_caps.exe', lcPath )
+			loFSO		= THIS.oFSO
+
+			IF FILE(lcEXE_CAPS)
+				THIS.writeLog( '* Se ha encontrado el programa de capitalización de nombres [' + lcEXE_CAPS + ']' )
+			ELSE
+				*-- No existe el programa de capitalización, así que no se capitalizan los nombres.
+				THIS.writeLog( '* No se ha encontrado el programa de capitalización de nombres [' + lcEXE_CAPS + ']' )
+				EXIT
+			ENDIF
+
+			THIS.RenameFile( tcFilename, lcEXE_CAPS, loFSO )
+		ENDTRY
+
+		RETURN
+	ENDPROC
+
+
+	PROCEDURE RenameFile
+		*--------------------------------------------------------------------------------------------------------------
+		* RENOMBRA UN ARCHIVO
+		*--------------------------------------------------------------------------------------------------------------
+		* PARÁMETROS:				(!=Obligatorio | ?=Opcional) (@=Pasar por referencia | v=Pasar por valor) (IN/OUT)
+		* tcFileName				(!v IN    ) Nombre del archivo a renombrar
+		* tcEXE_CAPS				(!v IN    ) Nombre del ejecutable de capitalización a usar
+		* toFSO						(!v IN    ) Instancia del objeto Scripting.FileSystemObject
+		*--------------------------------------------------------------------------------------------------------------
+		LPARAMETERS tcFilename, tcEXE_CAPS, toFSO AS Scripting.FileSystemObject
+
+		LOCAL lcLog
+		THIS.writeLog( '- Se ha solicitado capitalizar el archivo [' + tcFilename + ']' )
+		lcLog	= ''
+		DO (tcEXE_CAPS) WITH tcFilename, '', 'F', lcLog, .T.
+		toFSO.MoveFile( tcFilename, tcFilename )
+		THIS.writeLog( '  => Se renombrará a [' + tcFilename + ']' )
+	ENDPROC
+
+
 	FUNCTION RunCommand
 		*--------------------------------------------------------------------------------------------------------------
 		* EJECUTAR UN COMANDO
@@ -1377,10 +1443,6 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		*--------------------------------------------------------------------------------------------------------------
 		LPARAMETERS tcText, tnAppend
 
-		#IF .F.
-			LOCAL THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
-		#ENDIF
-
 		TRY
 			tcText	= EVL(tcText,'')
 			IF EVL(tnAppend,0) = 0
@@ -1398,7 +1460,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		* Using Win32 Functions in Visual FoxPro
 		* example=103
 		* Changing file attributes
-		LPARAMETERS  tcFileName, tcAttrib
+		LPARAMETERS  tcFilename, tcAttrib
 		tcAttrib	= UPPER(tcAttrib)
 
 		#DEFINE FILE_ATTRIBUTE_READONLY		1
@@ -1414,7 +1476,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		DECLARE INTEGER GetFileAttributes IN kernel32 STRING tcFileName
 
 		* read current attributes for this file
-		dwFileAttributes = GetFileAttributes(tcFileName)
+		dwFileAttributes = GetFileAttributes(tcFilename)
 
 		IF dwFileAttributes = -1
 			* the file does not exist
@@ -1467,7 +1529,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 			ENDIF
 
 			* setting selected attributes
-			=SetFileAttributes(tcFileName, dwFileAttributes)
+			=SetFileAttributes(tcFilename, dwFileAttributes)
 		ENDIF
 	ENDPROC
 
