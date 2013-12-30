@@ -1487,11 +1487,16 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		*--------------------------------------------------------------------------------------------------------------
 		LPARAMETERS tcFilename, tcEXE_CAPS, toFSO AS Scripting.FileSystemObject
 
-		LOCAL lcLog
+		LOCAL lcLog, laFile(1,5)
 		THIS.writeLog( '- Se ha solicitado capitalizar el archivo [' + tcFilename + ']' )
 		lcLog	= ''
 		DO (tcEXE_CAPS) WITH tcFilename, '', 'F', lcLog, .T.
-		toFSO.MoveFile( tcFilename, tcFilename )
+		IF ADIR( laFile, tcFileName, '', 1 ) > 0 AND laFile(1,1) <> JUSTFNAME(tcFileName)
+			toFSO.MoveFile( FORCEPATH( laFile(1,1), JUSTPATH(tcFileName) ), tcFileName )
+			THIS.writeLog( '  => Se renombrará a [' + tcFileName + ']' )
+		ELSE
+			THIS.writeLog( '  => No se renombrará a [' + tcFileName + '] porque ya estaba correcto.' )
+		ENDIF
 		THIS.writeLog( '  => Se renombrará a [' + tcFilename + ']' )
 	ENDPROC
 
