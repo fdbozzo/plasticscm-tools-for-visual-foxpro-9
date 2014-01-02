@@ -85,6 +85,9 @@ TRY
 	CASE VARTYPE(loTool) <> 'O'
 		loEx	= CREATEOBJECT("Exception")
 
+	CASE lcOperation == 'ADD'
+		loTool.P_Add( @loEx, P02, P03, P04 )
+
 	CASE lcOperation == 'CHECKIN'
 		loTool.P_Checkin( @loEx, P02, P03, P04 )
 
@@ -168,6 +171,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		+ [<memberdata name="normalizarcapitalizacionarchivos" display="normalizarCapitalizacionArchivos"/>] ;
 		+ [<memberdata name="ofso" display="oFSO"/>] ;
 		+ [<memberdata name="oshell" display="oShell"/>] ;
+		+ [<memberdata name="p_add" display="P_Add"/>] ;
 		+ [<memberdata name="p_checkin" display="P_Checkin"/>] ;
 		+ [<memberdata name="p_checkout" display="P_Checkout"/>] ;
 		+ [<memberdata name="p_diff" display="P_Diff"/>] ;
@@ -258,6 +262,85 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				.l_Initialized	= .T.
 			ENDIF
 		ENDWITH && THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
+	ENDPROC
+
+
+	PROCEDURE P_Add
+		*--------------------------------------------------------------------------------------------------------------
+		* PROCESA EL ADD
+		*--------------------------------------------------------------------------------------------------------------
+		* PARÁMETROS:				(!=Obligatorio | ?=Opcional) (@=Pasar por referencia | v=Pasar por valor) (IN/OUT)
+		* toEx						(?@    OUT) Objeto con información del error
+		*--------------------------------------------------------------------------------------------------------------
+		LPARAMETERS toEx AS EXCEPTION, P02, P03, P04
+
+		TRY
+			LOCAL lcMenError, lcStdIn, laStdIn(1,3), laLineas(1), I ;
+				, loFSO AS Scripting.FileSystemObject ;
+				, loStdIn AS Scripting.TextStream ;
+				, loStdOut AS Scripting.TextStream ;
+				, loStdErr AS Scripting.TextStream
+
+			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
+				.writeLog( '---' + PADR( PROGRAM(),77, '-' ) )
+				toEx				= NULL
+
+				.Initialize()
+
+				loFSO	= .oFSO
+
+				IF EMPTY(P02) OR EMPTY(P03) OR EMPTY(P04)
+					loStdIn = loFSO.GetStandardStream(0)	&& Standard Input
+					*.writeLog( 'StdIn: --------------------' )
+
+					lcStdIn	= loStdIn.ReadAll()
+				ELSE
+					lcStdIn	= P02 + ' "' + P03 + '" ' + P04 + CR_LF
+				ENDIF
+
+				.writeLog( lcStdIn )
+
+				* Estructura a leer de ejemplo:								=> c.1	c.2-------------------------------------	c.3
+				*	CH "c:\DESA\FileName_Caps" DIR							=>	CH	c:\DESA\FileName_Caps						DIR
+				*	AD "c:\DESA\FileName_Caps\CONFIG" DIR					=>	AD	c:\DESA\FileName_Caps\CONFIG				DIR
+				*	AD "c:\DESA\FileName_Caps\CONFIG\config.fpw" FILE		=>	AD	c:\DESA\FileName_Caps\CONFIG\config.fpw		FILE
+
+				FOR I = 1 TO ALINES(laLineas, lcStdIn, 1+4 )
+					IF ALINES( laStdIn, laLineas(I), 1, ["] ) > 0 THEN
+						.writeLog( '[' + laStdIn(1,1) + '] [' + laStdIn(1,2) + '] [' + laStdIn(1,3) + ']' )
+						IF laStdIn(1,1) = 'AD' AND laStdIn(1,3) = 'FILE'
+							*.writeLog( [=> laStdIn(1,1) = 'AD' AND laStdIn(1,3) = 'FILE'] )
+							.normalizarCapitalizacionArchivos( laStdIn(1,2) )
+						ELSE
+							*.writeLog( [La condición no se cumplió] )
+						ENDIF
+					ENDIF
+				ENDFOR
+
+			ENDWITH && THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
+
+		CATCH TO toEx WHEN toEx.MESSAGE = '0'
+			toEx	= NULL
+
+		CATCH TO toEx
+			lcMenError	= 'CurDir: ' + SYS(5)+CURDIR() + CR_LF ;
+				+ 'Error ' + TRANSFORM(toEx.ERRORNO) + ', ' + toEx.MESSAGE + CR_LF ;
+				+ toEx.PROCEDURE + ', line ' + TRANSFORM(toEx.LINENO) + CR_LF ;
+				+ toEx.LINECONTENTS + CR_LF ;
+				+ toEx.USERVALUE
+			THIS.writeLog( lcMenError )
+			*IF _VFP.StartMode = 0
+			MESSAGEBOX( lcMenError, 0+16+4096, "ATENCIÓN!!", 60000 )
+			*ENDIF
+
+		FINALLY
+			IF VARTYPE(loStdIn) = 'O'
+				loStdIn.CLOSE()
+			ENDIF
+			THIS.writeLog( '' )
+		ENDTRY
+
+		RETURN
 	ENDPROC
 
 
@@ -1404,11 +1487,16 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		*--------------------------------------------------------------------------------------------------------------
 		LPARAMETERS tcFilename, tcEXE_CAPS, toFSO AS Scripting.FileSystemObject
 
-		LOCAL lcLog
+		LOCAL lcLog, laFile(1,5)
 		THIS.writeLog( '- Se ha solicitado capitalizar el archivo [' + tcFilename + ']' )
 		lcLog	= ''
 		DO (tcEXE_CAPS) WITH tcFilename, '', 'F', lcLog, .T.
-		toFSO.MoveFile( tcFilename, tcFilename )
+		IF ADIR( laFile, tcFileName, '', 1 ) > 0 AND laFile(1,1) <> JUSTFNAME(tcFileName)
+			toFSO.MoveFile( FORCEPATH( laFile(1,1), JUSTPATH(tcFileName) ), tcFileName )
+			THIS.writeLog( '  => Se renombrará a [' + tcFileName + ']' )
+		ELSE
+			THIS.writeLog( '  => No se renombrará a [' + tcFileName + '] porque ya estaba correcto.' )
+		ENDIF
 		THIS.writeLog( '  => Se renombrará a [' + tcFilename + ']' )
 	ENDPROC
 
