@@ -1191,7 +1191,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 		TRY
 			LOCAL lcDestinationPath_2, lcDestinationPath_b, lcDestinationPath_c, lcCommand, lnCommandResult ;
-				, lcBinarytMergeResult, lcBinarytMergeResul_b, lcBinarytMergeResult_c ;
+				, lcBinarytMergeResult, lcBinarytMergeResul_b, lcBinarytMergeResult_c, lcResultPathParsed ;
 				, loEx AS EXCEPTION
 
 			STORE '' TO lcDestinationPath_2, lcDestinationPath_b, lcDestinationPath_c, lcCommand, lnCommandResult ;
@@ -1214,7 +1214,8 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				*.DeleteFile(lcDestinationPath_c)
 
 				*-- Regenera el BIN (PJX,VCX,SCX,etc)
-				lcCommand			= '"' + FORCEPATH( 'foxbin2prg.exe', .cEXEPath ) + '"' + tcTextMergeResult
+				lcResultPathParsed	= ' "' + CHRTRAN(tcTextMergeResult,'"','') + '" "0" "0" "0" "0" "0" "0" "' + tcDestinationPath + '"'
+				lcCommand			= '"' + FORCEPATH( 'foxbin2prg.exe', .cEXEPath ) + '" ' + lcResultPathParsed
 				lnCommandResult		= .RunCommand( lcCommand )
 
 				IF (lnCommandResult == 1)
