@@ -3,14 +3,7 @@
 *-- Fernando D. Bozzo			- 18/12/2013
 *------------------------------------------------------------------------------
 * PARÁMETROS:				(!=Obligatorio | ?=Opcional) (@=Pasar por referencia | v=Pasar por valor) (IN/OUT)
-* tcSourcePath				(!v IN    ) Path del archivo origen
-* tcDestinationPath			(!v IN    ) Path del archivo destino
-* tcSourceSymbolic			(!v IN    ) Ruta simbólica del archivo origen con información del changeset, branch o revisión
-* tcDestinationSymbolic		(!v IN    ) Ruta simbólica del archivo destino con información del changeset, branch o revisión
-*-- Estos se usan para el MERGE:
-* tcBasePath				(!v IN    ) Path del archivo base (base del archivo origen y del destino)
-* tcBaseSymbolic			(!v IN    ) Ruta simbólica del archivo base con información del changeset, branch o revisión
-* tcOutputPath				(!v IN    ) Path del archivo de salida generado
+* VER DETALLE DE PARÁMETROS EN CADA OPERACIÓN (lcOperacion="CHECKIN", etc)
 *--------------------------------------------------------------------------------------------------------------
 LPARAMETERS P01, P02, P03, P04, P05, P06, P07, P08, P09, P10
 
@@ -21,12 +14,15 @@ TRY
 	LOCAL lsBuffer, lnAddress, lnBufsize, lnPcount ;
 		, lcOperation, lcSourcePath, lcDestinationPath, lcSourceSymbolic, lcDestinationSymbolic ;
 		, lcBasePath, lcBaseSymbolic, lcOutputPath
-	loEx	= NULL
-	*tcTool	= UPPER( EVL( tcTool, 'DIFF' ) )
-	loTool	= CREATEOBJECT('CL_SCM_LIB')
-	_SCREEN.ADDPROPERTY( 'ExitCode', 0 )
 
 	lnPcount	= PCOUNT()
+	loEx		= NULL
+	*tcTool		= UPPER( EVL( tcTool, 'DIFF' ) )
+	loTool		= CREATEOBJECT('CL_SCM_LIB')
+	_SCREEN.ADDPROPERTY( 'ExitCode', 0 )
+	
+	*MESSAGEBOX( TRANSFORM(p01),64+4096 )
+
 
 	IF lnPcount <= 1	&& Fox no los ve... pero están ahí :)
 		* Obtengo la linea completa de comandos
@@ -48,6 +44,7 @@ TRY
 		ENDIF
 
 		lsBuffer = CHRTRAN(lsBuffer, CHR(0)+'"', " ")
+		loTool.writeLog( TTOC(DATETIME()) )
 		loTool.writeLog( 'Buffer de parámetros: [' + lsBuffer + ']' )
 
 		FOR I = 1 TO OCCURS("'", lsBuffer) / 2
@@ -86,15 +83,35 @@ TRY
 		loEx	= CREATEOBJECT("Exception")
 
 	CASE lcOperation == 'ADD'
+		*------------------------------------------------------------------------------
+		* NO FUNCIONA EL TRIGGER "ADD" EN PLASTIC 5.X! :(
+		*--------------------------------------------------------------------------------------------------------------
 		loTool.P_Add( @loEx, P02, P03, P04 )
 
 	CASE lcOperation == 'CHECKIN'
+		*------------------------------------------------------------------------------
+		* PARÁMETROS:				(!=Obligatorio | ?=Opcional) (@=Pasar por referencia | v=Pasar por valor) (IN/OUT)
+		* tcOperacion				(!v IN    ) Operación a realizar (Ej: CH=Changed, AD=Added, MV=Moved, DE=Deleted)
+		* tcFileOrPath				(!v IN    ) Path del archivo o directorio (Ej: "c:\DESA\FileName_Caps")
+		* tcTypeOfFile				(!v IN    ) Tipo de archivo (Ej: FILE, DIR)
+		*--------------------------------------------------------------------------------------------------------------
 		loTool.P_Checkin( @loEx, P02, P03, P04 )
 
 	CASE lcOperation == 'CHECKOUT'
+		*------------------------------------------------------------------------------
+		* PARÁMETROS:				(!=Obligatorio | ?=Opcional) (@=Pasar por referencia | v=Pasar por valor) (IN/OUT)
+		* tcFile					(!v IN    ) Path del archivo (Ej: "c:\DESA\FileName_Caps")
+		*--------------------------------------------------------------------------------------------------------------
 		loTool.P_Checkout( @loEx, P02 )
 
 	CASE lcOperation == 'DIFF'
+		*------------------------------------------------------------------------------
+		* PARÁMETROS:				(!=Obligatorio | ?=Opcional) (@=Pasar por referencia | v=Pasar por valor) (IN/OUT)
+		* tcSourcePath				(!v IN    ) Path del archivo origen
+		* tcDestinationPath			(!v IN    ) Path del archivo destino
+		* tcSourceSymbolic			(!v IN    ) Ruta simbólica del archivo origen con información del changeset, branch o revisión
+		* tcDestinationSymbolic		(!v IN    ) Ruta simbólica del archivo destino con información del changeset, branch o revisión
+		*--------------------------------------------------------------------------------------------------------------
 		lcSourcePath			= P02
 		lcDestinationPath		= P03
 		lcSourceSymbolic		= P04
@@ -102,6 +119,16 @@ TRY
 		loTool.P_Diff( @loEx, lcSourcePath, lcDestinationPath, lcSourceSymbolic, lcDestinationSymbolic )
 
 	CASE lcOperation == 'MERGE'
+		*------------------------------------------------------------------------------
+		* PARÁMETROS:				(!=Obligatorio | ?=Opcional) (@=Pasar por referencia | v=Pasar por valor) (IN/OUT)
+		* tcSourcePath				(!v IN    ) Path del archivo origen
+		* tcDestinationPath			(!v IN    ) Path del archivo destino
+		* tcSourceSymbolic			(!v IN    ) Ruta simbólica del archivo origen con información del changeset, branch o revisión
+		* tcDestinationSymbolic		(!v IN    ) Ruta simbólica del archivo destino con información del changeset, branch o revisión
+		* tcBasePath				(!v IN    ) Path del archivo base (base del archivo origen y del destino)
+		* tcBaseSymbolic			(!v IN    ) Ruta simbólica del archivo base con información del changeset, branch o revisión
+		* tcOutputPath				(!v IN    ) Path del archivo de salida generado
+		*--------------------------------------------------------------------------------------------------------------
 		lcSourcePath			= P02
 		lcDestinationPath		= P03
 		lcSourceSymbolic		= P04
@@ -110,6 +137,26 @@ TRY
 		lcBaseSymbolic			= P07
 		lcOutputPath			= P08
 		loTool.P_Merge( @loEx, lcSourcePath, lcDestinationPath, lcSourceSymbolic, lcDestinationSymbolic, lcBasePath, lcBaseSymbolic, lcOutputPath )
+
+	CASE lcOperation == 'PRESERVE_WS'
+		*------------------------------------------------------------------------------
+		* PARÁMETROS:				(!=Obligatorio | ?=Opcional) (@=Pasar por referencia | v=Pasar por valor) (IN/OUT)
+		* tcSourcePath				(!v IN    ) Path del archivo origen
+		* tcDestinationPath			(!v IN    ) Path del archivo destino
+		* tcSourceSymbolic			(!v IN    ) Ruta simbólica del archivo origen con información del changeset, branch o revisión
+		* tcDestinationSymbolic		(!v IN    ) Ruta simbólica del archivo destino con información del changeset, branch o revisión
+		* tcBasePath				(!v IN    ) Path del archivo base (base del archivo origen y del destino)
+		* tcBaseSymbolic			(!v IN    ) Ruta simbólica del archivo base con información del changeset, branch o revisión
+		* tcOutputPath				(!v IN    ) Path del archivo de salida generado
+		*--------------------------------------------------------------------------------------------------------------
+		lcSourcePath			= P02
+		lcDestinationPath		= P03
+		lcSourceSymbolic		= P04
+		lcDestinationSymbolic	= P05
+		lcBasePath				= P06
+		lcBaseSymbolic			= P07
+		lcOutputPath			= P08
+		*loTool.P_Merge( @loEx, lcSourcePath, lcDestinationPath, lcSourceSymbolic, lcDestinationSymbolic, lcBasePath, lcBaseSymbolic, lcOutputPath )
 
 	OTHERWISE
 		loEx	= CREATEOBJECT("Exception")
@@ -132,11 +179,13 @@ IF NOT ISNULL(loEx)
 	_SCREEN.ADDPROPERTY( 'ExitCode', 1 )
 ENDIF
 
+RELEASE loEx, loTool
+
 IF _VFP.STARTMODE <= 1
 	RETURN
 ENDIF
 
-IF NOT ISNULL(loEx)
+IF _SCREEN.ExitCode = 1
 	DECLARE ExitProcess IN Win32API INTEGER ExitCode
 	ExitProcess(1)
 ENDIF
@@ -183,6 +232,10 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		+ [<memberdata name="writelog" display="writeLog"/>] ;
 		+ [</VFPData>]
 
+
+	#IF .F.
+		LOCAL THIS AS CL_SCM_LIB OF FOXPRO_PLASTICSCM_DM.PRG
+	#ENDIF
 
 	oShell			= NULL
 	oFSO			= NULL
@@ -245,7 +298,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				.writeLog( 'sys(16)				=' + TRANSFORM(.cSys16) )
 				.writeLog( 'cEXEPath			=' + TRANSFORM(.cEXEPath) )
 
-				IF INLIST( .cOperation, 'DIFF', 'MERGE' )
+				IF INLIST( .cOperation, 'DIFF', 'MERGE', 'CHECKIN' )
 					loShell			= .oShell
 					lcPlasticSCM	= loShell.RegRead('HKEY_CLASSES_ROOT\plastic\shell\open\command\')
 					.writeLog( 'lcPlasticSCM		=' + TRANSFORM(lcPlasticSCM) )
@@ -329,9 +382,9 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				+ toEx.LINECONTENTS + CR_LF ;
 				+ toEx.USERVALUE
 			THIS.writeLog( lcMenError )
-			*IF _VFP.StartMode = 0
-			MESSAGEBOX( lcMenError, 0+16+4096, "ATENCIÓN!!", 60000 )
-			*ENDIF
+			IF _VFP.StartMode = 0
+				MESSAGEBOX( lcMenError, 0+16+4096, "ATENCIÓN!!", 60000 )
+			ENDIF
 
 		FINALLY
 			IF VARTYPE(loStdIn) = 'O'
@@ -354,11 +407,13 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		LPARAMETERS toEx AS EXCEPTION, P02, P03, P04
 
 		TRY
-			LOCAL lcMenError, lcStdIn, laStdIn(1,3), laLineas(1), I ;
+			LOCAL lcMenError, lcStdIn, laStdIn(1,3), laLineas(1), I, X, lcTempFile, laWS(1), lcWorkspaceDir, lcExt, lcCmd ;
 				, loFSO AS Scripting.FileSystemObject ;
 				, loStdIn AS Scripting.TextStream ;
 				, loStdOut AS Scripting.TextStream ;
-				, loStdErr AS Scripting.TextStream
+				, loStdErr AS Scripting.TextStream ;
+				, loShell AS WScript.SHELL ;
+				, loFB2P AS c_FoxBin2Prg OF FOXBIN2PRG.PRG
 
 			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 				.writeLog( '---' + PADR( PROGRAM(),77, '-' ) )
@@ -367,6 +422,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				.Initialize()
 
 				loFSO	= .oFSO
+				loShell	= .oShell
 
 				IF EMPTY(P02) OR EMPTY(P03) OR EMPTY(P04)
 					loStdIn = loFSO.GetStandardStream(0)	&& Standard Input
@@ -377,7 +433,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 					lcStdIn	= P02 + ' "' + P03 + '" ' + P04 + CR_LF
 				ENDIF
 
-				.writeLog( lcStdIn )
+				*.writeLog( lcStdIn )
 
 				* Estructura a leer de ejemplo:								=> c.1	c.2-------------------------------------	c.3
 				*	CH "c:\DESA\FileName_Caps" DIR							=>	CH	c:\DESA\FileName_Caps						DIR
@@ -385,14 +441,49 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				*	AD "c:\DESA\FileName_Caps\CONFIG\config.fpw" FILE		=>	AD	c:\DESA\FileName_Caps\CONFIG\config.fpw		FILE
 
 				FOR I = 1 TO ALINES(laLineas, lcStdIn, 1+4 )
+
 					IF ALINES( laStdIn, laLineas(I), 1, ["] ) > 0 THEN
-						.writeLog( '[' + laStdIn(1,1) + '] [' + laStdIn(1,2) + '] [' + laStdIn(1,3) + ']' )
-						IF laStdIn(1,1) = 'AD' AND laStdIn(1,3) = 'FILE'
-							*.writeLog( [=> laStdIn(1,1) = 'AD' AND laStdIn(1,3) = 'FILE'] )
-							.normalizarCapitalizacionArchivos( laStdIn(1,2) )
-						ELSE
-							*.writeLog( [La condición no se cumplió] )
+
+						*-- OBTENGO EL WORKSPACE DEL ITEM
+						lcExt		= UPPER( JUSTEXT( laStdIn(1,2) ) )
+
+						IF I = 1
+							lcTempFile	= '"' + FORCEPATH('cm_tmp.txt', SYS(2023)) + '"'
+							lcCmd		= GETENV("ComSpec") + " /C " + JUSTFNAME(.cCM) + ' lwk --format={2} > ' + lcTempFile
+							.writeLog( lcCmd )
+							loShell.RUN( lcCmd, 0, .T. )
+
+							FOR X = 1 TO ALINES(laWS, FILETOSTR( lcTempFile ) )
+								.writeLog( 'Buscar [' + UPPER(ADDBS(laWS(X))) + '] dentro de [' + ADDBS(UPPER(laStdIn(1,2))) + ']' )
+								IF UPPER(ADDBS(laWS(X))) $ ADDBS(UPPER(laStdIn(1,2))) THEN
+									lcWorkspaceDir = laWS(X)
+									EXIT
+								ENDIF
+							ENDFOR
+
+							IF EMPTY(lcWorkspaceDir)
+								ERROR "No se encontró el Workspace del archivo " + laStdIn(1,2)
+							ENDIF
+
+							loFB2P = NEWOBJECT("c_FoxBin2Prg", "FOXBIN2PRG.PRG", FORCEPATH( "FOXBIN2PRG.EXE", .cEXEPath ) )
+
+							*CD (lcWorkspaceDir)
+							*CLEAR PROGRAM
+							*CLEAR RESOURCES
 						ENDIF
+
+
+						.writeLog( '[' + laStdIn(1,1) + '] [' + laStdIn(1,2) + '] [' + laStdIn(1,3) + ']' )
+
+
+						*-- REGENERO EL BINARIO Y RECOMPILO
+						IF INLIST( lcExt, loFB2P.c_VC2, loFB2P.c_SC2, loFB2P.c_FR2, loFB2P.c_LB2 )
+							.writeLog( '- Regenerando binario para archivo: ' + laStdIn(1,2) )
+							loFB2P.Ejecutar( laStdIn(1,2), '', '', '', '1', '1', '1', '', '', .T., '', lcWorkspaceDir )
+						ENDIF
+
+
+						*ERROR 'Fin Test Checkin!'
 					ENDIF
 				ENDFOR
 
@@ -408,15 +499,20 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				+ toEx.LINECONTENTS + CR_LF ;
 				+ toEx.USERVALUE
 			THIS.writeLog( lcMenError )
-			*IF _VFP.StartMode = 0
-			MESSAGEBOX( lcMenError, 0+16+4096, "ATENCIÓN!!", 60000 )
-			*ENDIF
+			IF _VFP.StartMode = 0
+				MESSAGEBOX( lcMenError, 0+16+4096, "ATENCIÓN!!", 60000 )
+			ENDIF
 
 		FINALLY
 			IF VARTYPE(loStdIn) = 'O'
 				loStdIn.CLOSE()
 			ENDIF
+
 			THIS.writeLog( '' )
+
+			RELEASE loStdIn, loStdOut, loStdErr, loFSO, loShell, loFB2P
+
+			CD (THIS.cEXEPath)
 		ENDTRY
 
 		RETURN
@@ -474,9 +570,9 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				+ toEx.LINECONTENTS + CR_LF ;
 				+ toEx.USERVALUE
 			THIS.writeLog( lcMenError )
-			*IF _VFP.StartMode = 0
-			MESSAGEBOX( lcMenError, 0+16+4096, "ATENCIÓN!!", 60000 )
-			*ENDIF
+			IF _VFP.StartMode = 0
+				MESSAGEBOX( lcMenError, 0+16+4096, "ATENCIÓN!!", 60000 )
+			ENDIF
 
 		FINALLY
 			IF VARTYPE(loStdIn) = 'O'
@@ -539,9 +635,9 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				+ toEx.LINECONTENTS + CR_LF ;
 				+ toEx.USERVALUE
 			THIS.writeLog( lcMenError )
-			*IF _VFP.StartMode = 0
-			MESSAGEBOX( lcMenError, 0+16+4096, "ATENCIÓN!!", 60000 )
-			*ENDIF
+			IF _VFP.StartMode = 0
+				MESSAGEBOX( lcMenError, 0+16+4096, "ATENCIÓN!!", 60000 )
+			ENDIF
 
 		ENDTRY
 
@@ -605,9 +701,9 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				+ toEx.LINECONTENTS + CR_LF ;
 				+ toEx.USERVALUE
 			THIS.writeLog( lcMenError )
-			*IF _VFP.StartMode = 0
-			MESSAGEBOX( lcMenError, 0+16+4096, "ATENCIÓN!!", 60000 )
-			*ENDIF
+			IF _VFP.StartMode = 0
+				MESSAGEBOX( lcMenError, 0+16+4096, "ATENCIÓN!!", 60000 )
+			ENDIF
 
 		ENDTRY
 
@@ -1492,11 +1588,11 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		THIS.writeLog( '- Se ha solicitado capitalizar el archivo [' + tcFilename + ']' )
 		lcLog	= ''
 		DO (tcEXE_CAPS) WITH tcFilename, '', 'F', lcLog, .T.
-		IF ADIR( laFile, tcFileName, '', 1 ) > 0 AND laFile(1,1) <> JUSTFNAME(tcFileName)
-			toFSO.MoveFile( FORCEPATH( laFile(1,1), JUSTPATH(tcFileName) ), tcFileName )
-			THIS.writeLog( '  => Se renombrará a [' + tcFileName + ']' )
+		IF ADIR( laFile, tcFilename, '', 1 ) > 0 AND laFile(1,1) <> JUSTFNAME(tcFilename)
+			toFSO.MoveFile( FORCEPATH( laFile(1,1), JUSTPATH(tcFilename) ), tcFilename )
+			THIS.writeLog( '  => Se renombrará a [' + tcFilename + ']' )
 		ELSE
-			THIS.writeLog( '  => No se renombrará a [' + tcFileName + '] porque ya estaba correcto.' )
+			THIS.writeLog( '  => No se renombrará a [' + tcFilename + '] porque ya estaba correcto.' )
 		ENDIF
 		THIS.writeLog( '  => Se renombrará a [' + tcFilename + ']' )
 	ENDPROC
