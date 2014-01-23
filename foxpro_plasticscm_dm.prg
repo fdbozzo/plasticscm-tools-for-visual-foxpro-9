@@ -220,6 +220,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		+ [<memberdata name="normalizarcapitalizacionarchivos" display="normalizarCapitalizacionArchivos"/>] ;
 		+ [<memberdata name="ofso" display="oFSO"/>] ;
 		+ [<memberdata name="oshell" display="oShell"/>] ;
+		+ [<memberdata name="o_foxbin2prg" display="o_FoxBin2Prg"/>] ;
 		+ [<memberdata name="p_add" display="P_Add"/>] ;
 		+ [<memberdata name="p_checkin" display="P_Checkin"/>] ;
 		+ [<memberdata name="p_checkout" display="P_Checkout"/>] ;
@@ -239,6 +240,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 	oShell			= NULL
 	oFSO			= NULL
+	o_FoxBin2Prg	= NULL
 	cSys16			= ''
 	cEXEPath		= ''
 	lDebug			= .F.
@@ -295,6 +297,8 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				.cEXEPath		= JUSTPATH( .cSys16 )
 				.lDebug			= ( FILE( FORCEEXT( .cSys16, 'LOG' ) ) )
 				.cPlasticPath	= ''
+				SET PROCEDURE TO ( FORCEPATH( "FOXBIN2PRG.EXE", .cEXEPath ) ) ADDITIVE
+				.o_FoxBin2Prg = CREATEOBJECT("c_FoxBin2Prg")
 				.writeLog( 'sys(16)				=' + TRANSFORM(.cSys16) )
 				.writeLog( 'cEXEPath			=' + TRANSFORM(.cEXEPath) )
 
@@ -465,11 +469,8 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 								ERROR "No se encontró el Workspace del archivo " + laStdIn(1,2)
 							ENDIF
 
-							loFB2P = NEWOBJECT("c_FoxBin2Prg", "FOXBIN2PRG.PRG", FORCEPATH( "FOXBIN2PRG.EXE", .cEXEPath ) )
-
+							loFB2P = THIS.o_FoxBin2Prg
 							*CD (lcWorkspaceDir)
-							*CLEAR PROGRAM
-							*CLEAR RESOURCES
 						ENDIF
 
 
