@@ -140,6 +140,8 @@ TRY
 
 	CASE lcOperation == 'PRESERVE_WS'
 		*------------------------------------------------------------------------------
+		* PRESERVA LOS ARCHIVOS BINARIOS DEL WORKSPACE, PARA HACER MERGE SOLO DE LOS TX2
+		*------------------------------------------------------------------------------
 		* PARÁMETROS:				(!=Obligatorio | ?=Opcional) (@=Pasar por referencia | v=Pasar por valor) (IN/OUT)
 		* tcSourcePath				(!v IN    ) Path del archivo origen
 		* tcDestinationPath			(!v IN    ) Path del archivo destino
@@ -156,7 +158,7 @@ TRY
 		lcBasePath				= P06
 		lcBaseSymbolic			= P07
 		lcOutputPath			= P08
-		*loTool.P_Merge( @loEx, lcSourcePath, lcDestinationPath, lcSourceSymbolic, lcDestinationSymbolic, lcBasePath, lcBaseSymbolic, lcOutputPath )
+		loTool.writeLog( 'Salteando archivo [' + tcSourcePath + ']' )
 
 	OTHERWISE
 		loEx	= CREATEOBJECT("Exception")
