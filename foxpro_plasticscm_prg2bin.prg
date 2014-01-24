@@ -188,36 +188,37 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				loShell	= .oShell
 				loFB2P	= .o_FoxBin2Prg
 				lcExt	= UPPER( JUSTEXT( tcSourcePath ) )
-				.writeLog( 'Evaluando archivo [' + tcSourcePath + ']...' )
+				.writeLog( 'Evaluando archivo [' + tcSourcePath + '] desde directorio [' + SYS(5)+CURDIR() + ']...' )
 
-				IF INLIST( lcExt, 'PJX', 'VCX', 'SCX', 'FRX', 'LBX' )
+				IF INLIST( lcExt, loFB2P.c_VC2, loFB2P.c_SC2, loFB2P.c_FR2, loFB2P.c_LB2 )
 
 					*-- OBTENGO EL WORKSPACE DEL ITEM
-					*lcTempFile	= '"' + FORCEPATH('cm' + SYS(2015) + '.txt', SYS(2023)) + '"'
-					*lcCmd		= GETENV("ComSpec") + " /C " + JUSTFNAME(.cCM) + ' lwk --format={2} > ' + lcTempFile
-					*.writeLog( lcCmd )
+					=RAND(-100000)
+					lcTempFile	= '"' + FORCEPATH('cm' + SYS(2015) + '_' + TRANSFORM(RAND()*100000,'@L ######') + '.txt', SYS(2023)) + '"'
+					lcCmd		= GETENV("ComSpec") + " /C " + JUSTFNAME(.cCM) + ' lwk --format={2} > ' + lcTempFile
+					.writeLog( lcCmd )
 					
-					*loShell.RUN( lcCmd, 0, .T. )
+					loShell.RUN( lcCmd, 0, .T. )
 
-					*FOR X = 1 TO ALINES(laWorkspace, FILETOSTR( lcTempFile ) )
-					*	*.writeLog( 'Buscar [' + UPPER(ADDBS(laWorkspace(X))) + '] dentro de [' + ADDBS(UPPER(tcSourcePath)) + ']' )
-					*	IF UPPER(ADDBS(laWorkspace(X))) $ ADDBS(UPPER(tcSourcePath)) THEN
-					*		lcWorkspaceDir = laWorkspace(X)
-					*		.writeLog( '- Encontrado workspace [' + UPPER(ADDBS(laWorkspace(X))) + ']' )
-					*		EXIT
-					*	ENDIF
-					*ENDFOR
+					FOR X = 1 TO ALINES(laWorkspace, FILETOSTR( lcTempFile ) )
+						*.writeLog( 'Buscar [' + UPPER(ADDBS(laWorkspace(X))) + '] dentro de [' + ADDBS(UPPER(tcSourcePath)) + ']' )
+						IF UPPER(ADDBS(laWorkspace(X))) $ ADDBS(UPPER(tcSourcePath)) THEN
+							lcWorkspaceDir = laWorkspace(X)
+							.writeLog( '- Encontrado workspace [' + UPPER(ADDBS(laWorkspace(X))) + ']' )
+							EXIT
+						ENDIF
+					ENDFOR
 
-					*IF EMPTY(lcWorkspaceDir)
-					*	ERROR "No se encontró el Workspace del archivo " + tcSourcePath
-					*ENDIF
+					IF EMPTY(lcWorkspaceDir)
+						ERROR "No se encontró el Workspace del archivo " + tcSourcePath
+					ENDIF
 
-					*ERASE (lcTempFile)
+					ERASE (lcTempFile)
 					*CD (lcWorkspaceDir)
 
 					*-- REGENERO EL BINARIO Y RECOMPILO
-					.writeLog( '- Regenerando texto para archivo: ' + tcSourcePath )
-					loFB2P.Ejecutar( tcSourcePath, '', '', '', '1', '1', '1', '', '', .T., '', '1' )
+					.writeLog( '- Regenerando binario para archivo: ' + tcSourcePath )
+					loFB2P.Ejecutar( tcSourcePath, '', '', '', '1', '1', '1', '', '', .T., '', lcWorkspaceDir )
 				ELSE
 					.writeLog( '- Salteado por reglas internas' )
 				ENDIF
