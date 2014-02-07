@@ -223,6 +223,9 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		+ [<memberdata name="ofso" display="oFSO"/>] ;
 		+ [<memberdata name="oshell" display="oShell"/>] ;
 		+ [<memberdata name="o_foxbin2prg" display="o_FoxBin2Prg"/>] ;
+		+ [<memberdata name="obtenerarchivosdeldirectorio" display="ObtenerArchivosDelDirectorio"/>] ;
+		+ [<memberdata name="obtenercambiospendientes" display="ObtenerCambiosPendientes"/>] ;
+		+ [<memberdata name="obtenerworkspacedir" display="ObtenerWorkspaceDir"/>] ;
 		+ [<memberdata name="p_add" display="P_Add"/>] ;
 		+ [<memberdata name="p_checkin" display="P_Checkin"/>] ;
 		+ [<memberdata name="p_checkout" display="P_Checkout"/>] ;
@@ -266,9 +269,15 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 
 	PROCEDURE DESTROY
+		THIS.FlushLog()
+	ENDPROC
+
+
+	PROCEDURE FlushLog
 		IF NOT EMPTY(THIS.cTextLog)
 			*THIS.writeLog( '---' + PROGRAM() + ' <<< Fin.' )
 			STRTOFILE( THIS.cTextLog + CR_LF, FORCEPATH( 'foxpro_plasticscm_dm.log', GETENV("TEMP") ), 1 )
+			THIS.cTextLog = ''
 		ENDIF
 	ENDPROC
 
@@ -304,7 +313,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				.writeLog( 'sys(16)				=' + TRANSFORM(.cSys16) )
 				.writeLog( 'cEXEPath			=' + TRANSFORM(.cEXEPath) )
 
-				IF INLIST( .cOperation, 'DIFF', 'MERGE', 'CHECKIN' )
+				IF INLIST( .cOperation, 'DIFF', 'MERGE', 'CHECKIN', 'REGEN' )
 					loShell			= .oShell
 					lcPlasticSCM	= loShell.RegRead('HKEY_CLASSES_ROOT\plastic\shell\open\command\')
 					.writeLog( 'lcPlasticSCM		=' + TRANSFORM(lcPlasticSCM) )
@@ -482,7 +491,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 						*-- REGENERO EL BINARIO Y RECOMPILO
 						IF INLIST( lcExt, loFB2P.c_VC2, loFB2P.c_SC2, loFB2P.c_FR2, loFB2P.c_LB2 )
 							.writeLog( '- Regenerando binario para archivo: ' + laStdIn(1,2) )
-							loFB2P.Ejecutar( laStdIn(1,2), '', '', '', '1', '1', '1', '', '', .T., '', lcWorkspaceDir )
+							loFB2P.Ejecutar( laStdIn(1,2), '', '', '', '1', '1', '1', '', '', .T., '', lcWorkspaceDir, '1', '1' )
 						ENDIF
 
 
@@ -781,7 +790,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 					ERROR "There was an error performing the diff operation."
 				ENDIF
 
-				lcSourcePathParsed	= ' "' + tcSourcePath + '" "0" "0" "0" "0" "0" "0" "' + tcWorkspaceFileName + '"'
+				lcSourcePathParsed	= ' "' + tcSourcePath + '" "0" "0" "0" "0" "0" "0" "' + tcWorkspaceFileName + '" "1" "1"'
 				lcCommand			= '"' + FORCEPATH( 'foxbin2prg.exe', .cEXEPath ) + '"' + lcSourcePathParsed
 				lnCommandResult		= .RunCommand( lcCommand )
 
@@ -849,7 +858,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 					ERROR "There was an error performing the merge operation."
 				ENDIF
 
-				lcSourcePathParsed	= ' "' + tcSourcePath + '" "0" "0" "0" "0" "0" "0" "' + tcWorkspaceFileName + '"'
+				lcSourcePathParsed	= ' "' + tcSourcePath + '" "0" "0" "0" "0" "0" "0" "' + tcWorkspaceFileName + '" "1" "1"'
 				lcCommand			= '"' + FORCEPATH( 'foxbin2prg.exe', .cEXEPath ) + '"' + lcSourcePathParsed
 				lnCommandResult		= .RunCommand( lcCommand )
 
@@ -923,7 +932,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 					ERROR "There was an error performing the merge operation."
 				ENDIF
 
-				lcBasePathParsed	= ' "' + tcBasePath + '" "0" "0" "0" "0" "0" "0" "' + tcWorkspaceFileName + '"'
+				lcBasePathParsed	= ' "' + tcBasePath + '" "0" "0" "0" "0" "0" "0" "' + tcWorkspaceFileName + '" "1" "1"'
 				lcCommand			= '"' + FORCEPATH( 'foxbin2prg.exe', .cEXEPath ) + '"' + lcBasePathParsed
 				lnCommandResult		= .RunCommand( lcCommand )
 
@@ -993,7 +1002,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 						ERROR "There was an error performing the diff (rev) operation."
 					ENDIF
 
-					lcDestinationPathParsed	= ' "' + tcDestinationPath + '" "0" "0" "0" "0" "0" "0" "' + tcWorkspaceFileName + '"'
+					lcDestinationPathParsed	= ' "' + tcDestinationPath + '" "0" "0" "0" "0" "0" "0" "' + tcWorkspaceFileName + '" "1" "1"'
 					lcCommand				= '"' + FORCEPATH( 'foxbin2prg.exe', .cEXEPath ) + '"' + lcDestinationPathParsed
 					lnCommandResult		= .RunCommand( lcCommand )
 
@@ -1004,7 +1013,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 					llNotInWorkspace	= .T.
 
 				ELSE
-					lcDestinationPathParsed	= ' "' + tcDestinationPath + '" "0" "0" "0" "0" "0" "0" "' + tcWorkspaceFileName + '"'
+					lcDestinationPathParsed	= ' "' + tcDestinationPath + '" "0" "0" "0" "0" "0" "0" "' + tcWorkspaceFileName + '" "1" "1"'
 					lcCommand			= '"' + FORCEPATH( 'foxbin2prg.exe', .cEXEPath ) + '"' + lcDestinationPathParsed
 					lnCommandResult		= .RunCommand( lcCommand )
 
@@ -1050,7 +1059,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				.writeLog( '---' + PADR( PROGRAM(),77, '-' ) )
 				lnCommandResult		= 0
 
-				lcDestinationPathParsed	= ' "' + tcDestinationPath + '" "0" "0" "0" "0" "0" "0" "' + tcWorkspaceFileName + '"'
+				lcDestinationPathParsed	= ' "' + tcDestinationPath + '" "0" "0" "0" "0" "0" "0" "' + tcWorkspaceFileName + '" "1" "1"'
 				lcCommand			= '"' + FORCEPATH( 'foxbin2prg.exe', .cEXEPath ) + '"' + lcDestinationPathParsed
 				lnCommandResult		= .RunCommand( lcCommand )
 
@@ -1313,7 +1322,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				*.DeleteFile(lcDestinationPath_c)
 
 				*-- Regenera el BIN (PJX,VCX,SCX,etc)
-				lcResultPathParsed	= ' "' + CHRTRAN(tcTextMergeResult,'"','') + '" "0" "0" "0" "0" "0" "0" "' + tcDestinationPath + '"'
+				lcResultPathParsed	= ' "' + CHRTRAN(tcTextMergeResult,'"','') + '" "0" "0" "0" "0" "0" "0" "' + tcDestinationPath + '" "1" "1"'
 				lcCommand			= '"' + FORCEPATH( 'foxbin2prg.exe', .cEXEPath ) + '" ' + lcResultPathParsed
 				lnCommandResult		= .RunCommand( lcCommand )
 
@@ -1642,6 +1651,99 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 		RETURN
 	ENDFUNC
+
+
+	PROCEDURE ObtenerWorkspaceDir
+		LPARAMETERS tcSourcePath
+		LOCAL lcTempFile, lcCmd, lcWorkspaceDir, laWorkspace(1), X
+
+		IF EMPTY(tcSourcePath)
+			ERROR 'No se indicó un archivo para buscar el Workspace'
+		ENDIF
+
+		WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_PRG2BIN.PRG'
+			=RAND(-100000)
+			lcTempFile	= '"' + FORCEPATH('cm' + SYS(2015) + '_' + TRANSFORM(RAND()*100000,'@L ######') + '.txt', SYS(2023)) + '"'
+			lcCmd		= GETENV("ComSpec") + " /C " + JUSTFNAME(.cCM) + ' lwk --format={2} > ' + lcTempFile
+			.writeLog( lcCmd )
+
+			.oShell.RUN( lcCmd, 0, .T. )
+
+			FOR X = 1 TO ALINES(laWorkspace, FILETOSTR( lcTempFile ) )
+				*.writeLog( 'Buscar [' + UPPER(ADDBS(laWorkspace(X))) + '] dentro de [' + ADDBS(UPPER(tcSourcePath)) + ']' )
+				IF UPPER(ADDBS(laWorkspace(X))) $ ADDBS(UPPER(tcSourcePath)) THEN
+					lcWorkspaceDir = laWorkspace(X)
+					.writeLog( '- Encontrado workspace [' + UPPER(ADDBS(laWorkspace(X))) + ']' )
+					EXIT
+				ENDIF
+			ENDFOR
+
+			IF EMPTY(lcWorkspaceDir)
+				ERROR "No se encontró el Workspace del archivo " + tcSourcePath
+			ENDIF
+
+			ERASE (lcTempFile)
+		ENDWITH && THIS
+
+		RETURN lcWorkspaceDir
+	ENDPROC
+
+
+	PROCEDURE ObtenerCambiosPendientes
+		LPARAMETERS tcWorkspaceDir, taFiles, tnFileCount
+
+		EXTERNAL ARRAY taFiles
+		DIMENSION taFiles(1)
+
+		LOCAL lcTempFile, lcCmd, lcWorkspaceDir, laWorkspace(1), X
+
+		WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_PRG2BIN.PRG'
+			=RAND(-100000)
+			lcTempFile	= '"' + FORCEPATH('cm' + SYS(2015) + '_' + TRANSFORM(RAND()*100000,'@L ######') + '.txt', SYS(2023)) + '"'
+			lcCmd		= GETENV('ComSpec') + ' /C ' + JUSTFNAME(.cCM) + ' fc -R "' + tcWorkspaceDir + '" > ' + lcTempFile
+			.writeLog( lcCmd )
+			.oShell.RUN( lcCmd, 0, .T. )
+			tnFileCount	= ALINES(taFiles, FILETOSTR( lcTempFile ) )
+			ERASE (lcTempFile)
+		ENDWITH && THIS
+	ENDPROC
+
+
+	PROCEDURE ObtenerArchivosDelDirectorio
+		LPARAMETERS tcDir, taFiles, lnFileCount
+		EXTERNAL ARRAY taFiles
+
+		LOCAL laFiles(1), I, lnFiles
+
+		IF TYPE("ALEN(laFiles)") # "N" OR EMPTY(lnFileCount)
+			lnFileCount = 0
+			DIMENSION taFiles(1)
+		ENDIF
+		
+		tcDir	= ADDBS(tcDir)
+		
+		IF DIRECTORY(tcDir)
+			lnFiles = ADIR( laFiles, tcDir + '*.*', 'D', 1)
+
+			*-- Busco los archivos
+			FOR I = 1 TO lnFiles
+				IF SUBSTR( laFiles(I,5), 5, 1 ) == 'D'
+					LOOP
+				ENDIF
+				lnFileCount	= lnFileCount + 1
+				DIMENSION taFiles(lnFileCount)
+				taFiles(lnFileCount)	= tcDir + laFiles(I,1)
+			ENDFOR
+
+			*-- Busco los subdirectorios
+			FOR I = 1 TO lnFiles
+				IF NOT SUBSTR( laFiles(I,5), 5, 1 ) == 'D' OR LEFT(laFiles(I,1), 1) == '.'
+					LOOP
+				ENDIF
+				THIS.ObtenerArchivosDelDirectorio( tcDir + laFiles(I,1), @taFiles, @lnFileCount )
+			ENDFOR
+		ENDIF
+	ENDPROC
 
 
 	PROCEDURE ChangeFileAttribute
