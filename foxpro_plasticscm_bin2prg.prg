@@ -149,7 +149,6 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 			ENDIF
 
 		FINALLY
-			*THIS.writeLog( '' )
 			STORE NULL TO loFB2P
 
 			*IF NOT llPreInit
@@ -184,7 +183,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				loFB2P.cargar_frm_avance()
 				loFB2P.o_Frm_Avance.nMAX_VALUE = lnFileCount
 				loFB2P.o_Frm_Avance.nVALUE = 0
-				loFB2P.o_Frm_Avance.CAPTION	= loFB2P.o_Frm_Avance.CAPTION + ' - Bin2Prg (Press Esc to Cancel)'
+				loFB2P.o_Frm_Avance.CAPTION	= loFB2P.o_Frm_Avance.CAPTION + ' - Bin>Prg (Press Esc to Cancel) WS:' + lcWorkspaceDir
 				loFB2P.o_Frm_Avance.ALWAYSONTOP = .T.
 				loFB2P.o_Frm_Avance.SHOW()
 				loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
@@ -242,7 +241,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				loFB2P.cargar_frm_avance()
 				loFB2P.o_Frm_Avance.nMAX_VALUE = lnFileCount
 				loFB2P.o_Frm_Avance.nVALUE = 0
-				loFB2P.o_Frm_Avance.CAPTION	= loFB2P.o_Frm_Avance.CAPTION + ' - Bin2Prg (Press Esc to Cancel)'
+				loFB2P.o_Frm_Avance.CAPTION	= loFB2P.o_Frm_Avance.CAPTION + ' - Bin>Prg (Press Esc to Cancel) WS:' + lcWorkspaceDir
 				loFB2P.o_Frm_Avance.ALWAYSONTOP = .T.
 				loFB2P.o_Frm_Avance.SHOW()
 				loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.

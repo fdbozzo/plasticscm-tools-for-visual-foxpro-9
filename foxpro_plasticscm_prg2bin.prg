@@ -104,13 +104,11 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 					IF NOT llPreInit
 						.writeLog( TTOC(DATETIME()) + '  ---' + PADR( PROGRAM(),77, '-' ) )
 					ENDIF
-					*.writeLog( 'Evaluando archivo [' + tcSourcePath + '] desde directorio [' + SYS(5)+CURDIR() + ']...' )
 
 					*-- OBTENGO EL WORKSPACE DEL ITEM
 					IF EMPTY(tcWorkspaceDir)
 						tcWorkspaceDir	= .ObtenerWorkspaceDir(tcSourcePath)
 					ENDIF
-					*CD (tcWorkspaceDir)	&& FoxBin2Prg ya cambia de directorio.
 
 					*-- REGENERO EL BINARIO Y RECOMPILO
 					*Ejecutar( tc_InputFile, tcType, tcTextName, tlGenText, tcDontShowErrors, tcDebug, tcDontShowProgress ;
@@ -121,7 +119,6 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 					lcDontShowErrors	= '0'
 					loFB2P.Ejecutar( tcSourcePath, '', '', '', lcDontShowErrors, lcDebug, lcDontShowProgress ;
 						, '', '', .T., '', tcWorkspaceDir, '1' )
-					.writeLog( '' )
 					llProcessed	= .T.
 				ELSE
 					*.writeLog( '- Salteado por reglas internas' )
@@ -184,7 +181,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				loFB2P.cargar_frm_avance()
 				loFB2P.o_Frm_Avance.nMAX_VALUE = lnFileCount
 				loFB2P.o_Frm_Avance.nVALUE = 0
-				loFB2P.o_Frm_Avance.CAPTION	= loFB2P.o_Frm_Avance.CAPTION + ' - Prg2Bin (Press Esc to Cancel)'
+				loFB2P.o_Frm_Avance.CAPTION	= loFB2P.o_Frm_Avance.CAPTION + ' - Prg>Bin (Press Esc to Cancel) WS:' + lcWorkspaceDir
 				loFB2P.o_Frm_Avance.ALWAYSONTOP = .T.
 				loFB2P.o_Frm_Avance.SHOW()
 				loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
@@ -192,9 +189,8 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				FOR I = 1 TO lnFileCount
 					loFB2P.o_Frm_Avance.lbl_TAREA.CAPTION = 'Procesando ' + laFiles(I) +  '...'
 					loFB2P.o_Frm_Avance.nVALUE = I
-					.P_MakeBinAndCompile( '', laFiles(I), lcWorkspaceDir )
-
 					INKEY()
+					.P_MakeBinAndCompile( '', laFiles(I), lcWorkspaceDir )
 
 					IF LASTKEY()=27
 						.writeLog( 'USER CANCEL REQUEST.' )
@@ -244,7 +240,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				loFB2P.cargar_frm_avance()
 				loFB2P.o_Frm_Avance.nMAX_VALUE = lnFileCount
 				loFB2P.o_Frm_Avance.nVALUE = 0
-				loFB2P.o_Frm_Avance.CAPTION	= loFB2P.o_Frm_Avance.CAPTION + ' - Prg2Bin (Press Esc to Cancel)'
+				loFB2P.o_Frm_Avance.CAPTION	= loFB2P.o_Frm_Avance.CAPTION + ' - Prg>Bin (Press Esc to Cancel) WS:' + lcWorkspaceDir
 				loFB2P.o_Frm_Avance.ALWAYSONTOP = .T.
 				loFB2P.o_Frm_Avance.SHOW()
 				loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
@@ -252,9 +248,8 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				FOR I = 1 TO lnFileCount
 					loFB2P.o_Frm_Avance.lbl_TAREA.CAPTION = 'Procesando ' + laFiles(I) +  '...'
 					loFB2P.o_Frm_Avance.nVALUE = I
-					.P_MakeBinAndCompile( '', laFiles(I), lcWorkspaceDir )
-
 					INKEY()
+					.P_MakeBinAndCompile( '', laFiles(I), lcWorkspaceDir )
 
 					IF LASTKEY()=27
 						.writeLog( 'USER CANCEL REQUEST.' )
@@ -280,6 +275,5 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 		RETURN
 
 	ENDPROC
-
 
 ENDDEFINE

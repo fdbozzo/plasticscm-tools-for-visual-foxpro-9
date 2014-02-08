@@ -25,8 +25,8 @@ _LegalCopyright = ""
 _LegalTrademark = ""
 _ProductName = " "
 _MajorVer = "2"
-_MinorVer = "4"
-_Revision = "  53"
+_MinorVer = "5"
+_Revision = "  54"
 _LanguageID = ""
 _AutoIncrement = "1"
 *</DevInfo>
@@ -50,9 +50,9 @@ MODIFY PROJECT 'foxpro_plasticscm_prg2bin.pjx' NOWAIT NOSHOW NOPROJECTHOOK
 loProject = _VFP.Projects('foxpro_plasticscm_prg2bin.pjx')
 
 WITH loProject.FILES
-	.ADD('config\config.fpw')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="1144494450" ObjRev="0" />
-	.ADD('foxpro_plasticscm_dm.exe')		&& *< FileMetadata: Type="Z" Cpid="0" Timestamp="0" ID="1145504795" ObjRev="0" />
-	.ADD('foxpro_plasticscm_prg2bin.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="1144494450" ObjRev="544" />
+	.ADD('config\config.fpw')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="1133815887" ID="1144494450" ObjRev="0" />
+	.ADD('foxpro_plasticscm_dm.exe')		&& *< FileMetadata: Type="Z" Cpid="0" Timestamp="1145541603" ID="1145504795" ObjRev="0" />
+	.ADD('foxpro_plasticscm_prg2bin.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="1145604916" ID="1144494450" ObjRev="544" />
 	*</BuildProj>
 
 	.ITEM('__newproject.f2b').Remove()
