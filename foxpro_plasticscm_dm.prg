@@ -263,7 +263,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		SET TALK OFF
 		SET NOTIFY OFF
 		THIS.writeLog()
-		THIS.writeLog( REPLICATE('#',80) )
+		THIS.writeLog( TTOC(DATETIME()) + ' ' + REPLICATE('#',80) )
 		*THIS.writeLog( '---' + PROGRAM() + ' >>> Inicio' )
 	ENDPROC
 
@@ -274,7 +274,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 
 	PROCEDURE FlushLog
-		IF NOT EMPTY(THIS.cTextLog)
+		IF NOT EMPTY(THIS.cTextLog) AND THIS.lDebug
 			*THIS.writeLog( '---' + PROGRAM() + ' <<< Fin.' )
 			STRTOFILE( THIS.cTextLog + CR_LF, FORCEPATH( 'foxpro_plasticscm_dm.log', GETENV("TEMP") ), 1 )
 			THIS.cTextLog = ''
@@ -306,10 +306,16 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				.cSys16			= SYS(16)
 				.cSys16			= SUBSTR( .cSys16, AT( GETWORDNUM( .cSys16, 2), .cSys16 ) + LEN( GETWORDNUM( .cSys16, 2) ) + 1 )
 				.cEXEPath		= JUSTPATH( .cSys16 )
-				.lDebug			= ( FILE( FORCEEXT( .cSys16, 'LOG' ) ) )
 				.cPlasticPath	= ''
-				SET PROCEDURE TO ( FORCEPATH( "FOXBIN2PRG.EXE", .cEXEPath ) ) ADDITIVE
-				.o_FoxBin2Prg = CREATEOBJECT("c_FoxBin2Prg")
+				IF _VFP.StartMode = 0 THEN
+					SET PROCEDURE TO ( FORCEPATH( "FOXBIN2PRG.PRG", .cEXEPath ) ) ADDITIVE
+				ELSE
+					SET PROCEDURE TO ( FORCEPATH( "FOXBIN2PRG.EXE", .cEXEPath ) ) ADDITIVE
+				ENDIF
+				.o_FoxBin2Prg	= CREATEOBJECT("c_FoxBin2Prg")
+				*.o_FoxBin2Prg.EvaluarConfiguracion( tcDontShowProgress, tcDontShowErrors, tcNoTimestamps, tcDebug, tcRecompile, tcExtraBackupLevels )
+				.o_FoxBin2Prg.EvaluarConfiguracion( '1', '1' )
+				.lDebug			= .o_FoxBin2Prg.l_Debug	&& ( FILE( FORCEEXT( .cSys16, 'LOG' ) ) )
 				.writeLog( 'sys(16)				=' + TRANSFORM(.cSys16) )
 				.writeLog( 'cEXEPath			=' + TRANSFORM(.cEXEPath) )
 

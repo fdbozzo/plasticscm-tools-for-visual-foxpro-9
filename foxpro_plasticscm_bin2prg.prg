@@ -21,7 +21,11 @@ TRY
 	loEx		= NULL
 
 	IF NOT 'FOXPRO_PLASTICSCM_DM.' $ SET("Procedure")
-		SET PROCEDURE TO (FORCEPATH( 'FOXPRO_PLASTICSCM_DM.EXE', JUSTPATH(SYS(16)) ) )
+		IF _VFP.StartMode = 0 THEN
+			SET PROCEDURE TO (FORCEPATH( 'FOXPRO_PLASTICSCM_DM.PRG', JUSTPATH(SYS(16)) ) )
+		ELSE
+			SET PROCEDURE TO (FORCEPATH( 'FOXPRO_PLASTICSCM_DM.EXE', JUSTPATH(SYS(16)) ) )
+		ENDIF
 	ENDIF
 
 	*tcTool		= UPPER( EVL( tcTool, 'DIFF' ) )
@@ -63,6 +67,7 @@ QUIT
 *******************************************************************************
 
 
+*DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'	&& For Debugging
 DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 	_MEMBERDATA	= [<VFPData>] ;
 		+ [<memberdata name="p_maketext" display="P_MakeText"/>] ;
@@ -101,7 +106,15 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				toEx		= NULL
 
 				*-- FILTRO LAS EXTENSIONES PERMITIDAS (EXCLUYO LOS DBFs Y DBCs)
-				IF INLIST( lcExt, 'PJX', 'VCX', 'SCX', 'FRX', 'LBX' )
+				IF lcExt == 'PJX' AND loFB2P.PJX_Conversion_Support >= 1 ;
+						OR lcExt == 'VCX' AND loFB2P.VCX_Conversion_Support >= 1 ;
+						OR lcExt == 'SCX' AND loFB2P.SCX_Conversion_Support >= 1 ;
+						OR lcExt == 'FRX' AND loFB2P.FRX_Conversion_Support >= 1 ;
+						OR lcExt == 'LBX' AND loFB2P.LBX_Conversion_Support >= 1 ;
+						OR lcExt == 'MNX' AND loFB2P.MNX_Conversion_Support >= 1 ;
+						OR lcExt == 'DBF' AND loFB2P.DBF_Conversion_Support >= 1 ;
+						OR lcExt == 'DBC' AND loFB2P.DBC_Conversion_Support >= 1 THEN
+
 					IF NOT llPreInit
 						.writeLog( TTOC(DATETIME()) + '  ---' + PADR( PROGRAM(),77, '-' ) )
 					ENDIF
@@ -114,17 +127,17 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 					*CD (tcWorkspaceDir)	&& FoxBin2Prg ya cambia de directorio.
 
 					*-- REGENERO EL BINARIO Y RECOMPILO
-					*Ejecutar( tc_InputFile, tcType, tcTextName, tlGenText, tcDontShowErrors, tcDebug, tcDontShowProgress ;
-					, toModulo, toEx, tlRelanzarError, tcOriginalFileName, tcRecompile, tcNoTimestamps)
 					.writeLog( '- Regenerando texto para archivo [' + tcSourcePath + ']...' )
 					lcDebug				= '0'
 					lcDontShowProgress	= '1'
 					lcDontShowErrors	= '0'
+					*loFB2P.Ejecutar( tc_InputFile, tcType, tcTextName, tlGenText, tcDontShowErrors, tcDebug, tcDontShowProgress ;
+					, toModulo, toEx, tlRelanzarError, tcOriginalFileName, tcRecompile, tcNoTimestamps)
 					loFB2P.Ejecutar( tcSourcePath, '', '', '', lcDontShowErrors, lcDebug, lcDontShowProgress ;
 						, '', '', .T., '', '0', '1' )
 					llProcessed = .T.
 				ELSE
-					*.writeLog( '- Salteado por reglas internas' )
+					.writeLog( '- Salteado por reglas internas (' + tcSourcePath + ')' )
 				ENDIF
 
 
