@@ -106,15 +106,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				toEx		= NULL
 
 				*-- FILTRO LAS EXTENSIONES PERMITIDAS (EXCLUYO LOS DBFs Y DBCs)
-				IF lcExt == 'PJX' AND loFB2P.PJX_Conversion_Support >= 1 ;
-						OR lcExt == 'VCX' AND loFB2P.VCX_Conversion_Support >= 1 ;
-						OR lcExt == 'SCX' AND loFB2P.SCX_Conversion_Support >= 1 ;
-						OR lcExt == 'FRX' AND loFB2P.FRX_Conversion_Support >= 1 ;
-						OR lcExt == 'LBX' AND loFB2P.LBX_Conversion_Support >= 1 ;
-						OR lcExt == 'MNX' AND loFB2P.MNX_Conversion_Support >= 1 ;
-						OR lcExt == 'DBF' AND loFB2P.DBF_Conversion_Support >= 1 ;
-						OR lcExt == 'DBC' AND loFB2P.DBC_Conversion_Support >= 1 THEN
-
+				IF loFB2P.TieneSoporte_Bin2Prg( lcExt ) THEN
 					IF NOT llPreInit
 						.writeLog( TTOC(DATETIME()) + '  ---' + PADR( PROGRAM(),77, '-' ) )
 					ENDIF
