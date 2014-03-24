@@ -126,7 +126,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 					*loFB2P.Ejecutar( tc_InputFile, tcType, tcTextName, tlGenText, tcDontShowErrors, tcDebug, tcDontShowProgress ;
 					, toModulo, toEx, tlRelanzarError, tcOriginalFileName, tcRecompile, tcNoTimestamps)
 					loFB2P.Ejecutar( tcSourcePath, '', '', '', lcDontShowErrors, lcDebug, lcDontShowProgress ;
-						, '', '', .T., '', '0', '1' )
+						, '', '', .T., '', tcWorkspaceDir, '1' )
 					llProcessed = .T.
 				ELSE
 					.writeLog( '- Salteado por reglas internas (' + tcSourcePath + ')' )
