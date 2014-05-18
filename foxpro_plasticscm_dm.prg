@@ -1328,7 +1328,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				*.DeleteFile(lcDestinationPath_c)
 
 				*-- Regenera el BIN (PJX,VCX,SCX,etc)
-				lcResultPathParsed	= ' "' + CHRTRAN(tcTextMergeResult,'"','') + '" "0" "0" "0" "0" "0" "0" "' + tcDestinationPath + '" "1" "1"'
+				lcResultPathParsed	= ' "' + CHRTRAN(tcTextMergeResult,'"','') + '" "0" "0" "0" "0" "" "0" "' + tcDestinationPath + '" "1" "1"'
 				lcCommand			= '"' + FORCEPATH( 'foxbin2prg.exe', .cEXEPath ) + '" ' + lcResultPathParsed
 				lnCommandResult		= .RunCommand( lcCommand )
 
@@ -1756,7 +1756,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		* Using Win32 Functions in Visual FoxPro
 		* example=103
 		* Changing file attributes
-		LPARAMETERS  tcFilename, tcAttrib
+		LPARAMETERS  tcFileName, tcAttrib
 		tcAttrib	= UPPER(tcAttrib)
 
 		#DEFINE FILE_ATTRIBUTE_READONLY		1
@@ -1768,65 +1768,82 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		#DEFINE FILE_ATTRIBUTE_TEMPORARY	512
 		#DEFINE FILE_ATTRIBUTE_COMPRESSED	2048
 
-		DECLARE SHORT SetFileAttributes IN kernel32 STRING tcFileName, INTEGER dwFileAttributes
-		DECLARE INTEGER GetFileAttributes IN kernel32 STRING tcFileName
+		TRY
+			LOCAL loEx AS EXCEPTION, dwFileAttributes
+			DECLARE SHORT 'SetFileAttributes' IN kernel32 AS fb2p_SetFileAttributes STRING tcFileName, INTEGER dwFileAttributes
+			DECLARE INTEGER 'GetFileAttributes' IN kernel32 AS fb2p_GetFileAttributes STRING tcFileName
 
-		* read current attributes for this file
-		dwFileAttributes = GetFileAttributes(tcFilename)
+			* read current attributes for this file
+			dwFileAttributes = fb2p_GetFileAttributes(tcFileName)
 
-		IF dwFileAttributes = -1
-			* the file does not exist
-			RETURN
-		ENDIF
-
-		IF dwFileAttributes > 0
-			IF '+R' $ tcAttrib
-				dwFileAttributes = BITOR(dwFileAttributes, FILE_ATTRIBUTE_READONLY)
-			ENDIF
-			IF '+A' $ tcAttrib
-				dwFileAttributes = BITOR(dwFileAttributes, FILE_ATTRIBUTE_ARCHIVE)
-			ENDIF
-			IF '+S' $ tcAttrib
-				dwFileAttributes = BITOR(dwFileAttributes, FILE_ATTRIBUTE_SYSTEM)
-			ENDIF
-			IF '+H' $ tcAttrib
-				dwFileAttributes = BITOR(dwFileAttributes, FILE_ATTRIBUTE_HIDDEN)
-			ENDIF
-			IF '+D' $ tcAttrib
-				dwFileAttributes = BITOR(dwFileAttributes, FILE_ATTRIBUTE_DIRECTORY)
-			ENDIF
-			IF '+T' $ tcAttrib
-				dwFileAttributes = BITOR(dwFileAttributes, FILE_ATTRIBUTE_TEMPORARY)
-			ENDIF
-			IF '+C' $ tcAttrib
-				dwFileAttributes = BITOR(dwFileAttributes, FILE_ATTRIBUTE_COMPRESSED)
+			IF dwFileAttributes = -1
+				* the file does not exist
+				EXIT
 			ENDIF
 
-			IF '-R' $ tcAttrib AND BITAND(dwFileAttributes, FILE_ATTRIBUTE_READONLY) = FILE_ATTRIBUTE_READONLY
-				dwFileAttributes = dwFileAttributes - FILE_ATTRIBUTE_READONLY
-			ENDIF
-			IF '-A' $ tcAttrib AND BITAND(dwFileAttributes, FILE_ATTRIBUTE_ARCHIVE) = FILE_ATTRIBUTE_ARCHIVE
-				dwFileAttributes = dwFileAttributes - FILE_ATTRIBUTE_ARCHIVE
-			ENDIF
-			IF '-S' $ tcAttrib AND BITAND(dwFileAttributes, FILE_ATTRIBUTE_SYSTEM) = FILE_ATTRIBUTE_SYSTEM
-				dwFileAttributes = dwFileAttributes - FILE_ATTRIBUTE_SYSTEM
-			ENDIF
-			IF '-H' $ tcAttrib AND BITAND(dwFileAttributes, FILE_ATTRIBUTE_HIDDEN) = FILE_ATTRIBUTE_HIDDEN
-				dwFileAttributes = dwFileAttributes - FILE_ATTRIBUTE_HIDDEN
-			ENDIF
-			IF '-D' $ tcAttrib AND BITAND(dwFileAttributes, FILE_ATTRIBUTE_DIRECTORY) = FILE_ATTRIBUTE_DIRECTORY
-				dwFileAttributes = dwFileAttributes - FILE_ATTRIBUTE_DIRECTORY
-			ENDIF
-			IF '-T' $ tcAttrib AND BITAND(dwFileAttributes, FILE_ATTRIBUTE_TEMPORARY) = FILE_ATTRIBUTE_TEMPORARY
-				dwFileAttributes = dwFileAttributes - FILE_ATTRIBUTE_TEMPORARY
-			ENDIF
-			IF '-C' $ tcAttrib AND BITAND(dwFileAttributes, FILE_ATTRIBUTE_COMPRESSED) = FILE_ATTRIBUTE_COMPRESSED
-				dwFileAttributes = dwFileAttributes - FILE_ATTRIBUTE_COMPRESSED
+			IF dwFileAttributes > 0
+				IF '+R' $ tcAttrib
+					dwFileAttributes = BITOR(dwFileAttributes, FILE_ATTRIBUTE_READONLY)
+				ENDIF
+				IF '+A' $ tcAttrib
+					dwFileAttributes = BITOR(dwFileAttributes, FILE_ATTRIBUTE_ARCHIVE)
+				ENDIF
+				IF '+S' $ tcAttrib
+					dwFileAttributes = BITOR(dwFileAttributes, FILE_ATTRIBUTE_SYSTEM)
+				ENDIF
+				IF '+H' $ tcAttrib
+					dwFileAttributes = BITOR(dwFileAttributes, FILE_ATTRIBUTE_HIDDEN)
+				ENDIF
+				IF '+D' $ tcAttrib
+					dwFileAttributes = BITOR(dwFileAttributes, FILE_ATTRIBUTE_DIRECTORY)
+				ENDIF
+				IF '+N' $ tcAttrib
+					dwFileAttributes = BITOR(dwFileAttributes, FILE_ATTRIBUTE_NORMAL)
+				ENDIF
+				IF '+T' $ tcAttrib
+					dwFileAttributes = BITOR(dwFileAttributes, FILE_ATTRIBUTE_TEMPORARY)
+				ENDIF
+				IF '+C' $ tcAttrib
+					dwFileAttributes = BITOR(dwFileAttributes, FILE_ATTRIBUTE_COMPRESSED)
+				ENDIF
+
+				IF '-R' $ tcAttrib AND BITAND(dwFileAttributes, FILE_ATTRIBUTE_READONLY) = FILE_ATTRIBUTE_READONLY
+					dwFileAttributes = dwFileAttributes - FILE_ATTRIBUTE_READONLY
+				ENDIF
+				IF '-A' $ tcAttrib AND BITAND(dwFileAttributes, FILE_ATTRIBUTE_ARCHIVE) = FILE_ATTRIBUTE_ARCHIVE
+					dwFileAttributes = dwFileAttributes - FILE_ATTRIBUTE_ARCHIVE
+				ENDIF
+				IF '-S' $ tcAttrib AND BITAND(dwFileAttributes, FILE_ATTRIBUTE_SYSTEM) = FILE_ATTRIBUTE_SYSTEM
+					dwFileAttributes = dwFileAttributes - FILE_ATTRIBUTE_SYSTEM
+				ENDIF
+				IF '-H' $ tcAttrib AND BITAND(dwFileAttributes, FILE_ATTRIBUTE_HIDDEN) = FILE_ATTRIBUTE_HIDDEN
+					dwFileAttributes = dwFileAttributes - FILE_ATTRIBUTE_HIDDEN
+				ENDIF
+				IF '-D' $ tcAttrib AND BITAND(dwFileAttributes, FILE_ATTRIBUTE_DIRECTORY) = FILE_ATTRIBUTE_DIRECTORY
+					dwFileAttributes = dwFileAttributes - FILE_ATTRIBUTE_DIRECTORY
+				ENDIF
+				IF '-N' $ tcAttrib AND BITAND(dwFileAttributes, FILE_ATTRIBUTE_NORMAL) = FILE_ATTRIBUTE_NORMAL
+					dwFileAttributes = dwFileAttributes - FILE_ATTRIBUTE_NORMAL
+				ENDIF
+				IF '-T' $ tcAttrib AND BITAND(dwFileAttributes, FILE_ATTRIBUTE_TEMPORARY) = FILE_ATTRIBUTE_TEMPORARY
+					dwFileAttributes = dwFileAttributes - FILE_ATTRIBUTE_TEMPORARY
+				ENDIF
+				IF '-C' $ tcAttrib AND BITAND(dwFileAttributes, FILE_ATTRIBUTE_COMPRESSED) = FILE_ATTRIBUTE_COMPRESSED
+					dwFileAttributes = dwFileAttributes - FILE_ATTRIBUTE_COMPRESSED
+				ENDIF
+
+				* setting selected attributes
+				=fb2p_SetFileAttributes(tcFileName, dwFileAttributes)
 			ENDIF
 
-			* setting selected attributes
-			=SetFileAttributes(tcFilename, dwFileAttributes)
-		ENDIF
+		CATCH TO loEx
+			THROW
+
+		FINALLY
+			CLEAR DLLS fb2p_SetFileAttributes, fb2p_GetFileAttributes
+		ENDTRY
+
+		RETURN
 	ENDPROC
 
 
