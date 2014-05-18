@@ -120,13 +120,13 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 
 					*-- REGENERO EL BINARIO Y RECOMPILO
 					.writeLog( '- Regenerando texto para archivo [' + tcSourcePath + ']...' )
-					lcDebug				= '0'
+					lcDebug				= ''
 					lcDontShowProgress	= '1'
 					lcDontShowErrors	= '0'
 					*loFB2P.Ejecutar( tc_InputFile, tcType, tcTextName, tlGenText, tcDontShowErrors, tcDebug, tcDontShowProgress ;
 					, toModulo, toEx, tlRelanzarError, tcOriginalFileName, tcRecompile, tcNoTimestamps)
 					loFB2P.Ejecutar( tcSourcePath, '', '', '', lcDontShowErrors, lcDebug, lcDontShowProgress ;
-						, '', '', .T., '', tcWorkspaceDir, '1' )
+						, '', '', .T., '', tcWorkspaceDir, '' )
 					llProcessed = .T.
 				ELSE
 					.writeLog( '- Salteado por reglas internas (' + tcSourcePath + ')' )
