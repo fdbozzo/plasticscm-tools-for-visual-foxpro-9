@@ -28,7 +28,7 @@ nExitCode = 0
 ' 4=Don't show FoxBin2prg error modal messages
 ' 8=Show end of process message
 ' 16=Empty timestamps
-nDebug = 1+0+4+0+16
+nDebug = 1+0+4+8
 '---------------------------------------------------------------------------------------------------
 
 If WScript.Arguments.Count = 0 Then
