@@ -15,10 +15,18 @@
 '                   como descripción "(VFP) Todos los Archivos: Regenerar versiones Texto"
 ' USO.............: Desde la ventana "Cambios Pendientes", seleccione todos los archivos con "Abrir con..." este script
 '---------------------------------------------------------------------------------------------------
-Dim nExitCode, cEXETool, cEXETool2
+Dim nExitCode, cEXETool, cEXETool2, nDebug
 Set wshShell = CreateObject( "WScript.Shell" )
 Set oVFP9 = CreateObject("VisualFoxPro.Application.9")
 nExitCode = 0
+'---------------------------------------------------------------------------------------------------
+'Cumulative Flags:
+' 1=Reserved
+' 2=Reserved
+' 4=Reserved
+' 8=Show end of process message
+nFlags = 8
+'---------------------------------------------------------------------------------------------------
 cEXETool2	= Replace(WScript.ScriptFullName, WScript.ScriptName, "foxpro_plasticscm_dm.exe")
 cEXETool	= Replace(WScript.ScriptFullName, WScript.ScriptName, "foxpro_plasticscm_bin2prg.exe")
 oVFP9.DoCmd( "SET PROCEDURE TO '" & cEXETool2 & "' ADDITIVE" )
@@ -29,4 +37,15 @@ oVFP9.DoCmd( "oTarea.ProcesarArchivos('" & WScript.Arguments(0) & "')" )
 oVFP9.DoCmd( "CLEAR ALL" )
 Set oVFP9 = Nothing
 
+If GetBit(nFlags, 4) Then
+	MsgBox "Fin del Proceso!", 64, WScript.ScriptName
+End If
+
 WScript.Quit(nExitCode)
+
+
+Function GetBit(lngValue, BitNum)
+     Dim BitMask
+     If BitNum < 32 Then BitMask = 2 ^ (BitNum - 1) Else BitMask = "&H80000000"
+     GetBit = CBool(lngValue AND BitMask)
+End Function
