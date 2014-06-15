@@ -102,7 +102,7 @@ Else
 				& cFlagRecompile & "," & cNoTimestamps & " )"
 		End If
 		If cFlagJustShowCall = "1" Then
-			MsgBox cCMD, 64, "PARAMETROS ENVIADOS"
+			MsgBox cCMD, 64, "PARAMETERS"
 		Else
 			oVFP9.DoCmd( cCMD )
 			nExitCode = oVFP9.Eval("_SCREEN.ExitCode")
@@ -115,7 +115,7 @@ Else
 	oVFP9.DoCmd( "oFoxBin2prg = NULL" )
 
 	If GetBit(nDebug, 4) Then
-		MsgBox "Fin del Proceso!", 64, WScript.ScriptName
+		MsgBox "End of Process!", 64, WScript.ScriptName
 	End If
 End If
 

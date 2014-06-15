@@ -38,7 +38,7 @@ oVFP9.DoCmd( "CLEAR ALL" )
 Set oVFP9 = Nothing
 
 If GetBit(nFlags, 4) Then
-	MsgBox "Fin del Proceso!", 64, WScript.ScriptName
+	MsgBox "End of Process!", 64, WScript.ScriptName
 End If
 
 WScript.Quit(nExitCode)
