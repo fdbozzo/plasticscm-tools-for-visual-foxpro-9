@@ -102,6 +102,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 
 				*-- FILTRO LAS EXTENSIONES PERMITIDAS (EXCLUYO LOS DBFs Y DBCs)
 				*IF INLIST( lcExt, loFB2P.c_VC2, loFB2P.c_SC2, loFB2P.c_FR2, loFB2P.c_LB2, loFB2P.c_MN2 )
+				loFB2P.EvaluarConfiguracion( '','','','','','','','', tcSourcePath )
 				IF loFB2P.TieneSoporte_Prg2Bin( lcExt ) THEN
 					IF NOT llPreInit
 						.writeLog( TTOC(DATETIME()) + '  ---' + PADR( PROGRAM(),77, '-' ) )
