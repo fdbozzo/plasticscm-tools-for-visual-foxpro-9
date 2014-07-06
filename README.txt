@@ -51,14 +51,14 @@ Custom "Open with..." CONFIGURATION:
 
 
 - Click "Add..." and complete the fields:
-     Display Name:                (VFP) Pending Changes: Regenerate Binaries
-	 Full path to the executable: <Path-To-FoxBin2Prg>\PlasticSCM_VFP9_Pending_Changes_Regenerate_Binary.vbs
+     Display Name:                (VFP) All Files: Regenerate Binary
+	 Full path to the executable: <Path-To-FoxBin2Prg>\PlasticSCM_VFP9_All_Files_Regenerate_Binary.vbs
 - Click OK
 
 
 - Click "Add..." and complete the fields:
-     Display Name:                (VFP) Pending Changes: Regenerate Text versions
-	 Full path to the executable: <Path-To-FoxBin2Prg>\PlasticSCM_VFP9_Pending_Changes_Regenerate_Text.vbs
+     Display Name:                (VFP) All Files: Regenerate Text versions
+	 Full path to the executable: <Path-To-FoxBin2Prg>\PlasticSCM_VFP9_All_Files_Regenerate_Text.vbs
 - Click OK
 
 
@@ -75,22 +75,22 @@ Custom "Open with..." CONFIGURATION:
 
 
 - Click "Add..." and complete the fields:
-     Display Name:                (VFP) All Files: Regenerate Binary
-	 Full path to the executable: <Path-To-FoxBin2Prg>\PlasticSCM_VFP9_All_Files_Regenerate_Binary.vbs
+     Display Name:                (VFP) Pending Changes: Regenerate Binaries
+	 Full path to the executable: <Path-To-FoxBin2Prg>\PlasticSCM_VFP9_Pending_Changes_Regenerate_Binary.vbs
 - Click OK
 
 
 - Click "Add..." and complete the fields:
-     Display Name:                (VFP) All Files: Regenerate Text versions
-	 Full path to the executable: <Path-To-FoxBin2Prg>\PlasticSCM_VFP9_All_Files_Regenerate_Text.vbs
+     Display Name:                (VFP) Pending Changes: Regenerate Text versions
+	 Full path to the executable: <Path-To-FoxBin2Prg>\PlasticSCM_VFP9_Pending_Changes_Regenerate_Text.vbs
 - Click OK
 
 
 *Note 3: We will use this on the GUI as a trick to convert to text or to binary
 *Note 4: You can add Notepad++ too, it's useful to see text files directly from Plastic GUI
 *Note 5: It's a good idea to create shortcuts of this programs: "Normalize_FileNames.vbs",
-		"Convert_VFP9_BIN_2_PRG.vbs", "Convert_VFP9_PRG_2_BIN.vbs" and "FoxBin2Prg.exe" and copy theese
-		acceses into "SendTo" folder of your Windows profile, so you can use this options
+		"Convert_VFP9_BIN_2_PRG.vbs", "Convert_VFP9_PRG_2_BIN.vbs" and "FoxBin2Prg.exe" and copy these
+		accesses into "SendTo" folder of your Windows profile, so you can use this options
 		from contextual Windows File Manager menu, right-clicking over a selected file or directory
 		and choosing the required option
 
