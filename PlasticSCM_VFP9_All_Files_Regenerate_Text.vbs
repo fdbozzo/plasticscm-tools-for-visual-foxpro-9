@@ -36,6 +36,7 @@ oVFP9.DoCmd( "oTarea = CREATEOBJECT('CL_SCM_2_LIB')" )
 oVFP9.DoCmd( "oTarea.ProcesarArchivos('" & WScript.Arguments(0) & "')" )
 oVFP9.DoCmd( "CLEAR ALL" )
 Set oVFP9 = Nothing
+wshShell.SendKeys("{F5}")
 
 If GetBit(nFlags, 4) Then
 	MsgBox "End of Process!", 64, WScript.ScriptName
