@@ -39,9 +39,6 @@ wshShell.SendKeys("{F5}")
 If GetBit(nFlags, 4) Then
 	If oVFP9.Eval("oTarea.l_Error") Then
 		MsgBox "End of Process! (with errors)" & Chr(13) & Chr(13) & oVFP9.Eval("oTarea.c_TextError"), 48, WScript.ScriptName
-		'cErrFile = oVFP9.Eval("FORCEPATH('FoxBin2Prg.LOG',GETENV('TEMP') )")
-		'oVFP9.DoCmd("STRTOFILE( oFoxBin2prg.c_ErrorLog, '" & cErrFile & "' )")
-		'WSHShell.run cErrFile
 	Else
 		MsgBox "End of Process!", 64, WScript.ScriptName
 	End If
