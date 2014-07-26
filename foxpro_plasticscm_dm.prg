@@ -216,6 +216,8 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		+ [<memberdata name="getsecondaryextensions" display="GetSecondaryExtensions"/>] ;
 		+ [<memberdata name="initialize" display="Initialize"/>] ;
 		+ [<memberdata name="ldebug" display="lDebug"/>] ;
+		+ [<memberdata name="c_texterror" display="c_TextError"/>] ;
+		+ [<memberdata name="l_error" display="l_Error"/>] ;
 		+ [<memberdata name="l_initialized" display="l_Initialized"/>] ;
 		+ [<memberdata name="mergeprocess" display="MergeProcess"/>] ;
 		+ [<memberdata name="movefile" display="MoveFile"/>] ;
@@ -254,6 +256,8 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 	cTextLog		= ''
 	cOperation		= ''
 	l_Initialized	= .F.
+	l_Error			= .F.
+	c_TextError		= ''
 
 
 	PROCEDURE INIT

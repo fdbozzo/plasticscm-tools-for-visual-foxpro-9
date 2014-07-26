@@ -34,13 +34,18 @@ oVFP9.DoCmd( "SET PROCEDURE TO '" & cEXETool & "' ADDITIVE" )
 oVFP9.DoCmd( "PUBLIC oTarea" )
 oVFP9.DoCmd( "oTarea = CREATEOBJECT('CL_SCM_2_LIB')" )
 oVFP9.DoCmd( "oTarea.ProcesarArchivosPendientes('" & WScript.Arguments(0) & "')" )
-oVFP9.DoCmd( "CLEAR ALL" )
-Set oVFP9 = Nothing
+wshShell.SendKeys("{F5}")
 
 If GetBit(nFlags, 4) Then
-	MsgBox "End of Process!", 64, WScript.ScriptName
+	If oVFP9.Eval("oTarea.l_Error") Then
+		MsgBox "End of Process! (with errors)" & Chr(13) & Chr(13) & oVFP9.Eval("oTarea.c_TextError"), 48, WScript.ScriptName
+	Else
+		MsgBox "End of Process!", 64, WScript.ScriptName
+	End If
 End If
 
+oVFP9.DoCmd( "CLEAR ALL" )
+Set oVFP9 = Nothing
 WScript.Quit(nExitCode)
 
 
