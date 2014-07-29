@@ -34,8 +34,6 @@ oVFP9.DoCmd( "SET PROCEDURE TO '" & cEXETool & "' ADDITIVE" )
 oVFP9.DoCmd( "PUBLIC oTarea" )
 oVFP9.DoCmd( "oTarea = CREATEOBJECT('CL_SCM_2_LIB')" )
 oVFP9.DoCmd( "oTarea.ProcesarArchivosPendientes('" & WScript.Arguments(0) & "')" )
-oVFP9.DoCmd( "CLEAR ALL" )
-Set oVFP9 = Nothing
 wshShell.SendKeys("{F5}")
 
 If GetBit(nFlags, 4) Then
@@ -46,6 +44,8 @@ If GetBit(nFlags, 4) Then
 	End If
 End If
 
+oVFP9.DoCmd( "CLEAR ALL" )
+Set oVFP9 = Nothing
 WScript.Quit(nExitCode)
 
 
