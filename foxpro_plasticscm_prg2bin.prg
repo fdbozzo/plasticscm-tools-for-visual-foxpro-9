@@ -139,12 +139,12 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 
 		CATCH TO toEx
 			THIS.l_Error		= .T.
-			THIS.c_TextError	= loException.Message
 			lcMenError	= 'CurDir: ' + SYS(5)+CURDIR() + CR_LF ;
 				+ 'Error ' + TRANSFORM(toEx.ERRORNO) + ', ' + toEx.MESSAGE + CR_LF ;
 				+ toEx.PROCEDURE + ', line ' + TRANSFORM(toEx.LINENO) + CR_LF ;
 				+ toEx.LINECONTENTS + CR_LF ;
 				+ toEx.USERVALUE
+			THIS.c_TextError	= lcMenError
 			THIS.writeLog( lcMenError )
 			IF _VFP.STARTMODE = 0
 				MESSAGEBOX( lcMenError, 0+16+4096, "ATENCIÓN!!", 60000 )
@@ -168,7 +168,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 		LPARAMETERS tcFileName
 
 		TRY
-			LOCAL lnFileCount, lcWorkspaceDir, laFiles(1), I, loException AS EXCEPTION ;
+			LOCAL lcMenError, lnFileCount, lcWorkspaceDir, laFiles(1), I, loException AS EXCEPTION ;
 				, loFB2P AS c_FoxBin2Prg OF FOXBIN2PRG.PRG
 
 			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_PRG2BIN.PRG'
@@ -212,11 +212,13 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 
 		CATCH TO loException
 			THIS.l_Error		= .T.
-			THIS.c_TextError	= loException.Message
-			THIS.writeLog( 'Error ' + TRANSFORM(loException.ERRORNO) + ', ' + loException.MESSAGE + CR_LF ;
+			lcMenError	= 'Error ' + TRANSFORM(loException.ERRORNO) + ', ' + loException.MESSAGE + CR_LF ;
 				+ ', Proced.' + loException.PROCEDURE + ', line ' + TRANSFORM(loException.LINENO) + CR_LF ;
 				+ ', content: ' + loException.LINECONTENTS + CR_LF ;
-				+ ' - para el archivo "' + tcFileName + '"' )
+				+ ' - para el archivo "' + tcFileName + '"' + CR_LF ;
+				+ loException.USERVALUE
+			THIS.c_TextError	= lcMenError
+			THIS.writeLog( lcMenError )
 
 		ENDTRY
 
@@ -229,7 +231,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 		LPARAMETERS tcFileName
 
 		TRY
-			LOCAL lnFileCount, lcWorkspaceDir, laFiles(1), I, loException AS EXCEPTION ;
+			LOCAL lcMenError, lnFileCount, lcWorkspaceDir, laFiles(1), I, loException AS EXCEPTION ;
 				, loFB2P AS c_FoxBin2Prg OF FOXBIN2PRG.PRG
 
 			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
@@ -273,11 +275,13 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 
 		CATCH TO loException
 			THIS.l_Error		= .T.
-			THIS.c_TextError	= loException.Message
-			THIS.writeLog( 'Error ' + TRANSFORM(loException.ERRORNO) + ', ' + loException.MESSAGE + CR_LF ;
+			lcMenError	= 'Error ' + TRANSFORM(loException.ERRORNO) + ', ' + loException.MESSAGE + CR_LF ;
 				+ ', Proced.' + loException.PROCEDURE + ', line ' + TRANSFORM(loException.LINENO) + CR_LF ;
 				+ ', content: ' + loException.LINECONTENTS + CR_LF ;
-				+ ' - para el archivo "' + tcFileName + '"' )
+				+ ' - para el archivo "' + tcFileName + '"' + CR_LF ;
+				+ loException.USERVALUE
+			THIS.c_TextError	= lcMenError
+			THIS.writeLog( lcMenError )
 
 		ENDTRY
 

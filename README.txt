@@ -36,7 +36,7 @@ MERGE CONFIGURATION ON PLASTICSCM:
 ------------------------------------------------------------------------
 - Click on PlasticSCM Preferences icon
 - Select "Merge Tools" and "add" this (including the quotes):
-	- External Merge Tool: "<path-to-tools>\foxpro_plasticscm_dm.exe" "'PRESERVE_WS'"
+	- External Merge Tool: "<path-to-tools>\foxpro_plasticscm_dm.exe" "'PRESERVE_WS' '@sourcefile'"
 	- Pattern: .pjx;.pjt;.vcx;.vct;.scx;.sct;.frx;.frt;.lbx;.lbt;.mnx;.mnt;.dbf;.fpt;.cdx;.dbc;.dcx;.dct     (use lowercase!)
 - Click OK
 
@@ -173,7 +173,7 @@ CONFIGURACIÓN DE MERGE EN PLASTICSCM:
 ------------------------------------------------------------------------
 - Clickear en el icono de Preferencias de PlasticSCM
 - Seleccionar "Herramientas Merge" y "agregar" esto:
-	- Herramienta Merge externa: "<path-a-las-herramientas>\foxpro_plasticscm_dm.exe" "'PRESERVE_WS'"
+	- Herramienta Merge externa: "<path-a-las-herramientas>\foxpro_plasticscm_dm.exe" "'PRESERVE_WS' '@sourcefile'"
 	- Patrón: .pjx;.pjt;.vcx;.vct;.scx;.sct;.frx;.frt;.lbx;.lbt;.mnx;.mnt;.dbf;.fpt;.cdx;.dbc;.dcx;.dct     (¡usar misúsculas!)
 - Clickear OK
 - Mover la extension agregada al inicio de la lista, para priorizarla
