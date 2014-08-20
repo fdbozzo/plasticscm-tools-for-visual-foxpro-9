@@ -1713,7 +1713,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 			lcCmd		= GETENV('ComSpec') + ' /C ' + JUSTFNAME(.cCM) + ' fc -R "' + tcWorkspaceDir + '" > ' + lcTempFile
 			.writeLog( lcCmd )
 			.oShell.RUN( lcCmd, 0, .T. )
-			tnFileCount	= ALINES(taFiles, FILETOSTR( lcTempFile ) )
+			tnFileCount	= ALINES(taFiles, FILETOSTR( lcTempFile ), 1+4 )
 			ERASE (lcTempFile)
 		ENDWITH && THIS
 	ENDPROC
