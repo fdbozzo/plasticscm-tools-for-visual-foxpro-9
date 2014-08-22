@@ -189,14 +189,14 @@ CONFIGURACIÓN DE Custom "Open with...":
 
 
 - Click en "Añadir..." y completar los campos:
-     Nombre a mostrar:                (VFP) Cambios Pendientes: Regenerar Binarios
-	 Ruta completa del ejecutable:    <Path-a-FoxBin2Prg>\PlasticSCM_VFP9_Pending_Changes_Regenerate_Binary.vbs
+     Nombre a mostrar:                (VFP) Todos los Archivos: Regenerar Binarios
+	 Ruta completa del ejecutable:    <Path-a-FoxBin2Prg>\PlasticSCM_VFP9_All_Files_Regenerate_Binary.vbs
 - Click en Aceptar
 
 
 - Click en "Añadir..." y completar los campos:
-     Nombre a mostrar:                (VFP) Cambios Pendientes: Regenerar versiones Texto
-	 Ruta completa del ejecutable:    <Path-a-FoxBin2Prg>\PlasticSCM_VFP9_Pending_Changes_Regenerate_Text.vbs
+     Nombre a mostrar:                (VFP) Todos los Archivos: Regenerar versiones Texto
+	 Ruta completa del ejecutable:    <Path-a-FoxBin2Prg>\PlasticSCM_VFP9_All_Files_Regenerate_Text.vbs
 - Click en Aceptar
 
 
@@ -213,14 +213,14 @@ CONFIGURACIÓN DE Custom "Open with...":
 
 
 - Click en "Añadir..." y completar los campos:
-     Nombre a mostrar:                (VFP) Todos los Archivos: Regenerar Binarios
-	 Ruta completa del ejecutable:    <Path-a-FoxBin2Prg>\PlasticSCM_VFP9_All_Files_Regenerate_Binary.vbs
+     Nombre a mostrar:                (VFP) Cambios Pendientes: Regenerar Binarios
+	 Ruta completa del ejecutable:    <Path-a-FoxBin2Prg>\PlasticSCM_VFP9_Pending_Changes_Regenerate_Binary.vbs
 - Click en Aceptar
 
 
 - Click en "Añadir..." y completar los campos:
-     Nombre a mostrar:                (VFP) Todos los Archivos: Regenerar versiones Texto
-	 Ruta completa del ejecutable:    <Path-a-FoxBin2Prg>\PlasticSCM_VFP9_All_Files_Regenerate_Text.vbs
+     Nombre a mostrar:                (VFP) Cambios Pendientes: Regenerar versiones Texto
+	 Ruta completa del ejecutable:    <Path-a-FoxBin2Prg>\PlasticSCM_VFP9_Pending_Changes_Regenerate_Text.vbs
 - Click en Aceptar
 
 
