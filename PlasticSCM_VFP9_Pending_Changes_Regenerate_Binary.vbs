@@ -39,6 +39,8 @@ wshShell.SendKeys("{F5}")
 If GetBit(nFlags, 4) Then
 	If oVFP9.Eval("oTarea.l_Error") Then
 		MsgBox "End of Process! (with errors)" & Chr(13) & Chr(13) & oVFP9.Eval("oTarea.c_TextError"), 48, WScript.ScriptName
+	ElseIf oVFP9.Eval("oTarea.c_TextError") <> "" Then
+		MsgBox "End of Process!" & Chr(13) & Chr(13) & oVFP9.Eval("oTarea.c_TextError"), 64, WScript.ScriptName
 	Else
 		MsgBox "End of Process!", 64, WScript.ScriptName
 	End If

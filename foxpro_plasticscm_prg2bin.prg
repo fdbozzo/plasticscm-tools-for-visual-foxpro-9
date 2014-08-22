@@ -206,6 +206,21 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				ENDFOR
 
 				loFB2P.o_Frm_Avance.HIDE()
+
+				IF lnFileCount = 0
+					IF loFB2P.c_Language = "ES"
+						THIS.c_TextError	= 'Hay 0 Cambios Pendientes para Procesar!' + C_CR + C_CR + '> Cambie a la vista de Cambios Pendientes para usar este script de Cambios Pendientes.'
+					ELSE
+						THIS.c_TextError	= 'There are 0 pending changes to Process!' + C_CR + C_CR + '> Switch to Pending Changes view to use this Pending Changes script.'
+					ENDIF
+				ELSE
+					IF loFB2P.c_Language = "ES"
+						THIS.c_TextError	= 'Se han procesado ' + TRANSFORM(lnFileCount) + ' Cambios Pendientes.'
+					ELSE
+						THIS.c_TextError	= '' + TRANSFORM(lnFileCount) + ' Pending Changes have been Processed.'
+					ENDIF
+				ENDIF
+
 				loFB2P.o_Frm_Avance	= NULL
 				loFB2P	= NULL
 			ENDWITH && THIS
