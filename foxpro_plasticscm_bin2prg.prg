@@ -221,7 +221,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 					IF loFB2P.c_Language = "ES"
 						THIS.c_TextError	= 'Se han procesado ' + TRANSFORM(lnFileCount) + ' Cambios Pendientes.'
 					ELSE
-						THIS.c_TextError	= 'There are ' + TRANSFORM(lnFileCount) + ' pending changes to Process.'
+						THIS.c_TextError	= '' + TRANSFORM(lnFileCount) + ' Pending Changes have been Processed.'
 					ENDIF
 				ENDIF
 
