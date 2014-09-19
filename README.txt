@@ -1,4 +1,4 @@
-Version v2.4
+Version v2.5 ENGLISH/ESPAÑOL
 
 ENGLISH ################################################################
 Visual FoxPro 9.0 Diff and Merge Tool for PlasticSCM 5
@@ -40,7 +40,7 @@ MERGE CONFIGURATION ON PLASTICSCM:
 	- Pattern: .pjx;.pjt;.vcx;.vct;.scx;.sct;.frx;.frt;.lbx;.lbt;.mnx;.mnt;.dbf;.fpt;.cdx;.dbc;.dcx;.dct     (use lowercase!)
 - Click OK
 
-* Note 2: Visual FoxPro binary extension are: pjx,pjt,vcx,vct,scx,sct,frx,frt,lbx,lbt,mnx,mnt,dbf,fpt,cdx,dbc,dcx,dct
+*Note 2: Visual FoxPro binary extension are: pjx,pjt,vcx,vct,scx,sct,frx,frt,lbx,lbt,mnx,mnt,dbf,fpt,cdx,dbc,dcx,dct
 
 
 
@@ -63,8 +63,8 @@ Custom "Open with..." CONFIGURATION:
 
 
 - Click "Add..." and complete the fields:
-     Display Name:                FoxBin2Prg
-	 Full path to the executable: <Path-To-FoxBin2Prg>\foxbin2prg.exe
+     Display Name:                (VFP) FoxBin2Prg
+	 Full path to the executable: <Path-To-FoxBin2Prg>\PlasticSCM_VFP9_FoxBin2Prg.vbs
 - Click OK
 
 
@@ -182,7 +182,7 @@ CONFIGURACIÓN DE MERGE EN PLASTICSCM:
 
 
 
-CONFIGURACIÓN DE Custom "Open with...":
+CONFIGURACIÓN DE Custom "Abrir con..." personalizado:
 ------------------------------------------------------------------------
 - Click en el icono de Preferencias de PlasticSCM
 - Seleccionar "Abrir con... personalizado"
@@ -201,14 +201,14 @@ CONFIGURACIÓN DE Custom "Open with...":
 
 
 - Click en "Añadir..." y completar los campos:
-     Nombre a mostrar:                FoxBin2Prg
-	 Ruta completa del ejecutable:    <Path-a-FoxBin2Prg>\foxbin2prg.exe
+     Nombre a mostrar:                (VFP) FoxBin2Prg
+	 Ruta completa del ejecutable:    <Path-a-FoxBin2Prg>\PlasticSCM_VFP9_FoxBin2Prg.vbs
 - Click en Aceptar
 
 
 - Click en "Añadir..." y completar los campos:
-     Display Name:                Normalizar Capitalización de un archivo
-	 Full path to the executable: <Path-a-FoxBin2Prg>\Normalize_FileNames.vbs
+     Nombre a mostrar:                Normalizar Capitalización de un archivo
+	 Ruta completa del ejecutable:    <Path-a-FoxBin2Prg>\Normalize_FileNames.vbs
 - Click OK
 
 
