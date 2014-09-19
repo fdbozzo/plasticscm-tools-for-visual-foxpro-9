@@ -1,4 +1,4 @@
-'PlasticSCM_getFile.vbs
+'PlasticSCM_Items_GetFileFromChangeset.vbs (GitHub: https://github.com/fdbozzo/foxpro_plastic_diff_merge)
 Dim WSHShell, nExitCode, cCMD, nDebug, strPath, oFSO, strOrigFile, strDestFile, nAnswer, nRet
 Set WSHShell = WScript.CreateObject("WScript.Shell")
 Set oFSO  = CreateObject( "Scripting.FileSystemObject" )

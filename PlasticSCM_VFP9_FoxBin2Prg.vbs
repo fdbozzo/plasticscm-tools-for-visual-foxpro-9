@@ -1,4 +1,4 @@
-' PlasticSCM_VFP9_FoxBin2Prg.vbs
+' PlasticSCM_VFP9_FoxBin2Prg.vbs (GitHub: https://github.com/fdbozzo/foxpro_plastic_diff_merge)
 ' 19/09/2014 - Fernando D. Bozzo (fdbozzo@gmail.com - http://fdbozzo.blogspot.com.es/)
 '
 'ENGLISH -------------------------------------------------------------------------------------------

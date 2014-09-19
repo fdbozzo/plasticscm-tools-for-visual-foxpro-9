@@ -1,4 +1,4 @@
-' PlasticSCM_VFP9_Pending_Changes_Regenerate_Text.vbs
+' PlasticSCM_VFP9_Pending_Changes_Regenerate_Text.vbs	(GitHub: https://github.com/fdbozzo/foxpro_plastic_diff_merge)
 ' 05/02/2014 - Fernando D. Bozzo (fdbozzo@gmail.com - http://fdbozzo.blogspot.com.es/)
 '
 'ENGLISH -------------------------------------------------------------------------------------------
