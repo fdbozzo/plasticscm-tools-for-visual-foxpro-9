@@ -89,7 +89,7 @@ Custom "Open with..." CONFIGURATION:
 *Note 3: We will use this on the GUI as a trick to convert to text or to binary
 *Note 4: You can add Notepad++ too, it's useful to see text files directly from Plastic GUI
 *Note 5: It's a good idea to create shortcuts of this programs: "Normalize_FileNames.vbs",
-		"Convert_VFP9_BIN_2_PRG.vbs", "Convert_VFP9_PRG_2_BIN.vbs" and "FoxBin2Prg.exe" and copy these
+		"Convert_VFP9_BIN_2_PRG.vbs", "Convert_VFP9_PRG_2_BIN.vbs" and "VFP9_FoxBin2Prg.vbs" and copy these
 		accesses into "SendTo" folder of your Windows profile, so you can use this options
 		from contextual Windows File Manager menu, right-clicking over a selected file or directory
 		and choosing the required option
@@ -227,7 +227,7 @@ CONFIGURACIÓN DE Custom "Abrir con..." personalizado:
 *Nota 3: Usaremos esto desde la interfaz como truco para convertir a texto o a binario
 *Nota 4: También puede agregar Notepad++, es útil para ver archivos de texto desde la interfaz de Plastic
 *Nota 5: Es conveniente crear accesos directos de los programas "Normalize_FileNames.vbs",
-		"Convert_VFP9_BIN_2_PRG.vbs", "Convert_VFP9_PRG_2_BIN.vbs" y "FoxBin2Prg.exe" y copiar estos
+		"Convert_VFP9_BIN_2_PRG.vbs", "Convert_VFP9_PRG_2_BIN.vbs" y "VFP9_FoxBin2Prg.vbs" y copiar estos
 		accesos en la carpeta "SendTo" del perfil de vuestro usuario, para poder usar estas opciones
 		desde el menú contextual del administrador de archivos de Windows, pudiendo hacer
 		click-derecho sobre un archivo o directorio y eligiendo la opción requerida

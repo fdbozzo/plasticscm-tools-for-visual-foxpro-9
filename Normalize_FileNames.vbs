@@ -1,5 +1,6 @@
 '---------------------------------------------------------------------------------------------------
-'	Normalize_FileNames.vbs - 06/01/2014 - Fernando D. Bozzo (fdbozzo@gmail.com)
+'	Normalize_FileNames.vbs (VFPx: https://vfpx.codeplex.com/wikipage?title=FoxBin2Prg)
+'	06/01/2014 - Fernando D. Bozzo (fdbozzo@gmail.com - Blog: http://fdbozzo.blogspot.com.es/)
 '---------------------------------------------------------------------------------------------------
 '	ENGLISH:
 '		Create a shortcut on user's "SendTo" folder and configure CAPS on filename_caps.cfg
@@ -9,7 +10,7 @@
 '---------------------------------------------------------------------------------------------------
 Const ForReading = 1 
 Dim WSHShell, FileSystemObject
-Dim oVFP9, nExitCode, cEXETool, cCMD, nDebug, cConvertType, aExtensions(8), filename_caps_log
+Dim oVFP9, nExitCode, cEXETool, cCMD, nDebug, cConvertType, aExtensions(8), filename_caps_log, nRet
 Dim i, x, str_cfg, aConf
 Set WSHShell = WScript.CreateObject("WScript.Shell")
 Set FileSystemObject = WScript.CreateObject("Scripting.FileSystemObject")
@@ -45,8 +46,6 @@ Else
 	For i = 0 To WScript.Arguments.Count-1
 		scanDirs( WScript.Arguments(i) )
 	Next
-
-	wshShell.SendKeys("{F5}")
 
 	If GetBit(nDebug, 4) Then
 		MsgBox "End of Process!", 64, WScript.ScriptName
@@ -93,7 +92,7 @@ Private Sub evaluateFile( tcFile )
 	If cFlagJustShowCall = "1" Then
 		MsgBox cCMD, 0, "PARAMETERS"
 	Else
-		oVFP9.DoCmd( cCMD )
+		nRet = oVFP9.DoCmd( cCMD )
 		'nExitCode = oVFP9.Eval("_SCREEN.ExitCode")
 	End If
 End Sub
