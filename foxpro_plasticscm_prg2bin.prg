@@ -101,30 +101,33 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				toEx		= NULL
 
 				*-- FILTRO LAS EXTENSIONES PERMITIDAS (EXCLUYO LOS DBFs Y DBCs)
-				*IF INLIST( lcExt, loFB2P.c_VC2, loFB2P.c_SC2, loFB2P.c_FR2, loFB2P.c_LB2, loFB2P.c_MN2 )
-				loFB2P.EvaluarConfiguracion( '','','','','','','','', tcSourcePath )
-				IF loFB2P.TieneSoporte_Prg2Bin( lcExt ) THEN
-					IF NOT llPreInit
-						.writeLog( TTOC(DATETIME()) + '  ---' + PADR( PROGRAM(),77, '-' ) )
-					ENDIF
-
-					*-- OBTENGO EL WORKSPACE DEL ITEM
-					IF EMPTY(tcWorkspaceDir)
-						tcWorkspaceDir	= .ObtenerWorkspaceDir(tcSourcePath)
-					ENDIF
-
-					*-- REGENERO EL BINARIO Y RECOMPILO
-					.writeLog( '- Regenerando binario para archivo [' + tcSourcePath + ']...' )
-					lcDebug				= ''
-					lcDontShowProgress	= '1'
-					lcDontShowErrors	= '0'
-					*loFB2P.Ejecutar( tc_InputFile, tcType, tcTextName, tlGenText, tcDontShowErrors, tcDebug, tcDontShowProgress ;
-					, toModulo, toEx, tlRelanzarError, tcOriginalFileName, tcRecompile, tcNoTimestamps)
-					loFB2P.Ejecutar( tcSourcePath, '', '', '', lcDontShowErrors, lcDebug, lcDontShowProgress ;
-						, '', '', .T., '', tcWorkspaceDir, '' )
-					llProcessed	= .T.
+				IF OCCURS( '.', JUSTFNAME(tcSourcePath) ) >= 2
+					.writeLog( '- Salteado por tener 2 puntos o más (' + tcSourcePath + ')' )
 				ELSE
-					.writeLog( '- Salteado por reglas internas (' + tcSourcePath + ')' )
+					loFB2P.EvaluarConfiguracion( '','','','','','','','', tcSourcePath )
+					IF loFB2P.TieneSoporte_Prg2Bin( lcExt ) THEN
+						IF NOT llPreInit
+							.writeLog( TTOC(DATETIME()) + '  ---' + PADR( PROGRAM(),77, '-' ) )
+						ENDIF
+
+						*-- OBTENGO EL WORKSPACE DEL ITEM
+						IF EMPTY(tcWorkspaceDir)
+							tcWorkspaceDir	= .ObtenerWorkspaceDir(tcSourcePath)
+						ENDIF
+
+						*-- REGENERO EL BINARIO Y RECOMPILO
+						.writeLog( '- Regenerando binario para archivo [' + tcSourcePath + ']...' )
+						lcDebug				= ''
+						lcDontShowProgress	= '1'
+						lcDontShowErrors	= '0'
+						*loFB2P.Ejecutar( tc_InputFile, tcType, tcTextName, tlGenText, tcDontShowErrors, tcDebug, tcDontShowProgress ;
+						, toModulo, toEx, tlRelanzarError, tcOriginalFileName, tcRecompile, tcNoTimestamps)
+						loFB2P.Ejecutar( tcSourcePath, '', '', '', lcDontShowErrors, lcDebug, lcDontShowProgress ;
+							, '', '', .T., '', tcWorkspaceDir, '' )
+						llProcessed	= .T.
+					ELSE
+						.writeLog( '- Salteado por no tener soporte como origen de texto (' + tcSourcePath + ')' )
+					ENDIF
 				ENDIF
 
 
@@ -168,13 +171,15 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 		LPARAMETERS tcFileName
 
 		TRY
-			LOCAL lcMenError, lnFileCount, lcWorkspaceDir, laFiles(1), I, loException AS EXCEPTION ;
+			LOCAL lcMenError, lnFileCount, lcWorkspaceDir, laFiles(1), I, lnProcesados ;
+				, loException AS EXCEPTION ;
 				, loFB2P AS c_FoxBin2Prg OF FOXBIN2PRG.PRG
 
 			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_PRG2BIN.PRG'
 				.Initialize()
 				lcWorkspaceDir	= .ObtenerWorkspaceDir( tcFileName )
 				loFB2P			= .o_FoxBin2Prg
+				lnProcesados	= 0
 				.ObtenerCambiosPendientes( lcWorkspaceDir, @laFiles, @lnFileCount )
 				.writeLog( TTOC(DATETIME()) + '  ---' + PADR( PROGRAM(),77, '-' ) )
 				.writeLog( 'Encontrados ' + TRANSFORM(lnFileCount) + ' archivos para filtrar y procesar' )
@@ -195,7 +200,10 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 					loFB2P.o_Frm_Avance.lbl_TAREA.CAPTION = 'Procesando ' + laFiles(I) +  '...'
 					loFB2P.o_Frm_Avance.nVALUE = I
 					INKEY()
-					.P_MakeBinAndCompile( '', laFiles(I), lcWorkspaceDir )
+
+					IF .P_MakeBinAndCompile( '', laFiles(I), lcWorkspaceDir )
+						lnProcesados	= lnProcesados + 1
+					ENDIF
 
 					IF LASTKEY()=27
 						.writeLog( 'USER CANCEL REQUEST.' )
@@ -207,7 +215,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 
 				loFB2P.o_Frm_Avance.HIDE()
 
-				IF lnFileCount = 0
+				IF lnProcesados = 0
 					IF loFB2P.c_Language = "ES"
 						THIS.c_TextError	= 'Hay 0 Cambios Pendientes para Procesar!' + C_CR + C_CR + '> Cambie a la vista de Cambios Pendientes para usar este script de Cambios Pendientes.'
 					ELSE
@@ -215,9 +223,9 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 					ENDIF
 				ELSE
 					IF loFB2P.c_Language = "ES"
-						THIS.c_TextError	= 'Se han procesado ' + TRANSFORM(lnFileCount) + ' Cambios Pendientes.'
+						THIS.c_TextError	= 'Se han procesado ' + TRANSFORM(lnProcesados) + ' Cambios Pendientes.'
 					ELSE
-						THIS.c_TextError	= '' + TRANSFORM(lnFileCount) + ' Pending Changes have been Processed.'
+						THIS.c_TextError	= '' + TRANSFORM(lnProcesados) + ' Pending Changes have been Processed.'
 					ENDIF
 				ENDIF
 
@@ -246,13 +254,15 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 		LPARAMETERS tcFileName
 
 		TRY
-			LOCAL lcMenError, lnFileCount, lcWorkspaceDir, laFiles(1), I, loException AS EXCEPTION ;
+			LOCAL lcMenError, lnFileCount, lcWorkspaceDir, laFiles(1), I, lnProcesados ;
+				, loException AS EXCEPTION ;
 				, loFB2P AS c_FoxBin2Prg OF FOXBIN2PRG.PRG
 
 			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 				.Initialize()
 				lcWorkspaceDir	= .ObtenerWorkspaceDir( tcFileName )
 				loFB2P			= .o_FoxBin2Prg
+				lnProcesados	= 0
 				.ObtenerArchivosDelDirectorio( lcWorkspaceDir, @laFiles, @lnFileCount )
 				.writeLog( TTOC(DATETIME()) + '  ---' + PADR( PROGRAM(),77, '-' ) )
 				.writeLog( 'Encontrados ' + TRANSFORM(lnFileCount) + ' archivos para filtrar y procesar' )
@@ -273,7 +283,10 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 					loFB2P.o_Frm_Avance.lbl_TAREA.CAPTION = 'Procesando ' + laFiles(I) +  '...'
 					loFB2P.o_Frm_Avance.nVALUE = I
 					INKEY()
-					.P_MakeBinAndCompile( '', laFiles(I), lcWorkspaceDir )
+
+					IF .P_MakeBinAndCompile( '', laFiles(I), lcWorkspaceDir )
+						lnProcesados	= lnProcesados + 1
+					ENDIF
 
 					IF LASTKEY()=27
 						.writeLog( 'USER CANCEL REQUEST.' )
