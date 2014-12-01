@@ -317,9 +317,12 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 					SET PROCEDURE TO ( FORCEPATH( "FOXBIN2PRG.EXE", .cEXEPath ) ) ADDITIVE
 				ENDIF
 				.o_FoxBin2Prg	= CREATEOBJECT("c_FoxBin2Prg")
-				*.o_FoxBin2Prg.EvaluarConfiguracion( tcDontShowProgress, tcDontShowErrors, tcNoTimestamps, tcDebug, tcRecompile, tcExtraBackupLevels )
-				.o_FoxBin2Prg.EvaluarConfiguracion( '1', '1' )
+				*.o_FoxBin2Prg.EvaluarConfiguracion( tcDontShowProgress, tcDontShowErrors, tcNoTimestamps, tcDebug, tcRecompile, tcExtraBackupLevels, tcClearUniqueID, tcOptimizeByFilestamp, tc_InputFile )
+				*.o_FoxBin2Prg.EvaluarConfiguracion( '1', '1' )
+				.o_FoxBin2Prg.EvaluarConfiguracion( '1', '1', '', '', '', '', '', '', tcSourcePath )
+				.writeLog( 'Se evaluó la configuración para el archivo [' + TRANSFORM(tcSourcePath) + ']' )
 				.lDebug			= .o_FoxBin2Prg.l_Debug	&& ( FILE( FORCEEXT( .cSys16, 'LOG' ) ) )
+				.writeLog( 'lDebug				=' + TRANSFORM(.lDebug) )
 				.writeLog( 'sys(16)				=' + TRANSFORM(.cSys16) )
 				.writeLog( 'cEXEPath			=' + TRANSFORM(.cEXEPath) )
 
@@ -1671,7 +1674,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 			ERROR 'No se indicó un archivo para buscar el Workspace'
 		ENDIF
 
-		WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_PRG2BIN.PRG'
+		WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 			=RAND(-100000)
 			lcTempFile	= '"' + FORCEPATH('cm' + SYS(2015) + '_' + TRANSFORM(RAND()*100000,'@L ######') + '.txt', SYS(2023)) + '"'
 			lcCmd		= GETENV("ComSpec") + " /C " + JUSTFNAME(.cCM) + ' lwk --format={2} > ' + lcTempFile
@@ -1692,7 +1695,9 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				ERROR "No se encontró el Workspace del archivo " + tcSourcePath
 			ENDIF
 
-			ERASE (lcTempFile)
+			IF NOT .lDebug THEN
+				ERASE (lcTempFile)
+			ENDIF
 		ENDWITH && THIS
 
 		RETURN lcWorkspaceDir
@@ -1707,14 +1712,17 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 		LOCAL lcTempFile, lcCmd, lcWorkspaceDir, laWorkspace(1), X
 
-		WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_PRG2BIN.PRG'
+		WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 			=RAND(-100000)
 			lcTempFile	= '"' + FORCEPATH('cm' + SYS(2015) + '_' + TRANSFORM(RAND()*100000,'@L ######') + '.txt', SYS(2023)) + '"'
 			lcCmd		= GETENV('ComSpec') + ' /C ' + JUSTFNAME(.cCM) + ' fc -R "' + tcWorkspaceDir + '" > ' + lcTempFile
 			.writeLog( lcCmd )
 			.oShell.RUN( lcCmd, 0, .T. )
 			tnFileCount	= ALINES(taFiles, FILETOSTR( lcTempFile ), 1+4 )
-			ERASE (lcTempFile)
+			
+			IF NOT .lDebug THEN
+				ERASE (lcTempFile)
+			ENDIF
 		ENDWITH && THIS
 	ENDPROC
 

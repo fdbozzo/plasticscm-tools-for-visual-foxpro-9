@@ -173,13 +173,15 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 		LPARAMETERS tcFileName
 
 		TRY
-			LOCAL lcMenError, lnFileCount, lcWorkspaceDir, laFiles(1), I, loException AS EXCEPTION ;
+			LOCAL lcMenError, lnFileCount, lcWorkspaceDir, laFiles(1), I, lnProcesados ;
+				, loException AS EXCEPTION ;
 				, loFB2P AS c_FoxBin2Prg OF FOXBIN2PRG.PRG
 
 			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_BIN2PRG.PRG'
 				.Initialize()
 				lcWorkspaceDir	= .ObtenerWorkspaceDir( tcFileName )
 				loFB2P			= .o_FoxBin2Prg
+				lnProcesados	= 0
 				.ObtenerCambiosPendientes( lcWorkspaceDir, @laFiles, @lnFileCount )
 				.writeLog( TTOC(DATETIME()) + '  ---' + PADR( PROGRAM(),77, '-' ) )
 				.writeLog( 'Encontrados ' + TRANSFORM(lnFileCount) + ' archivos para filtrar y procesar' )
@@ -188,18 +190,22 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				*EXIT
 
 				loFB2P.cargar_frm_avance()
-				loFB2P.o_Frm_Avance.nMAX_VALUE = lnFileCount
-				loFB2P.o_Frm_Avance.nVALUE = 0
-				loFB2P.o_Frm_Avance.CAPTION	= loFB2P.o_Frm_Avance.CAPTION + ' - Bin>Prg (Press Esc to Cancel) WS:' + lcWorkspaceDir
+				*loFB2P.o_Frm_Avance.nMAX_VALUE = lnFileCount
+				*loFB2P.o_Frm_Avance.nVALUE = 0
+				loFB2P.o_Frm_Avance.CAPTION	= STRTRAN(loFB2P.o_Frm_Avance.CAPTION,'FoxBin2Prg','Bin>Prg') + ' - WKS [' + lcWorkspaceDir + ']'
 				loFB2P.o_Frm_Avance.ALWAYSONTOP = .T.
-				loFB2P.o_Frm_Avance.SHOW()
-				loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
+				*loFB2P.o_Frm_Avance.SHOW()
+				*loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
 
 				FOR I = 1 TO lnFileCount
-					loFB2P.o_Frm_Avance.lbl_TAREA.CAPTION = 'Procesando ' + laFiles(I) +  '...'
-					loFB2P.o_Frm_Avance.nVALUE = I
+					*loFB2P.o_Frm_Avance.lbl_TAREA.CAPTION = 'Procesando ' + laFiles(I) +  '...'
+					*loFB2P.o_Frm_Avance.nVALUE = I
+					loFB2P.o_Frm_Avance.AvanceDelProceso( 'Procesando ' + laFiles(I) +  '...', I, lnFileCount, 0 )
 					INKEY()
-					.P_MakeText( '', laFiles(I), lcWorkspaceDir )
+
+					IF .P_MakeText( '', laFiles(I), lcWorkspaceDir )
+						lnProcesados	= lnProcesados + 1
+					ENDIF
 
 					IF LASTKEY()=27
 						.writeLog( 'USER CANCEL REQUEST.' )
@@ -211,7 +217,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 
 				loFB2P.o_Frm_Avance.HIDE()
 
-				IF lnFileCount = 0
+				IF lnProcesados = 0
 					IF loFB2P.c_Language = "ES"
 						THIS.c_TextError	= 'Hay 0 Cambios Pendientes para Procesar!' + C_CR + C_CR + '> Cambie a la vista de Cambios Pendientes para usar este script de Cambios Pendientes.'
 					ELSE
@@ -219,9 +225,9 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 					ENDIF
 				ELSE
 					IF loFB2P.c_Language = "ES"
-						THIS.c_TextError	= 'Se han procesado ' + TRANSFORM(lnFileCount) + ' Cambios Pendientes.'
+						THIS.c_TextError	= 'Se han procesado ' + TRANSFORM(lnProcesados) + ' Cambios Pendientes.'
 					ELSE
-						THIS.c_TextError	= '' + TRANSFORM(lnFileCount) + ' Pending Changes have been Processed.'
+						THIS.c_TextError	= '' + TRANSFORM(lnProcesados) + ' Pending Changes have been Processed.'
 					ENDIF
 				ENDIF
 
@@ -250,13 +256,15 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 		LPARAMETERS tcFileName
 
 		TRY
-			LOCAL lcMenError, lnFileCount, lcWorkspaceDir, laFiles(1), I, loException AS EXCEPTION ;
+			LOCAL lcMenError, lnFileCount, lcWorkspaceDir, laFiles(1), I, lnProcesados ;
+				, loException AS EXCEPTION ;
 				, loFB2P AS c_FoxBin2Prg OF FOXBIN2PRG.PRG
 
 			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 				.Initialize()
 				lcWorkspaceDir	= .ObtenerWorkspaceDir( tcFileName )
 				loFB2P			= .o_FoxBin2Prg
+				lnProcesados	= 0
 				.ObtenerArchivosDelDirectorio( lcWorkspaceDir, @laFiles, @lnFileCount )
 				.writeLog( TTOC(DATETIME()) + '  ---' + PADR( PROGRAM(),77, '-' ) )
 				.writeLog( 'Encontrados ' + TRANSFORM(lnFileCount) + ' archivos para filtrar y procesar' )
@@ -265,18 +273,22 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				*EXIT
 
 				loFB2P.cargar_frm_avance()
-				loFB2P.o_Frm_Avance.nMAX_VALUE = lnFileCount
-				loFB2P.o_Frm_Avance.nVALUE = 0
-				loFB2P.o_Frm_Avance.CAPTION	= loFB2P.o_Frm_Avance.CAPTION + ' - Bin>Prg (Press Esc to Cancel) WS:' + lcWorkspaceDir
+				*loFB2P.o_Frm_Avance.nMAX_VALUE = lnFileCount
+				*loFB2P.o_Frm_Avance.nVALUE = 0
+				loFB2P.o_Frm_Avance.CAPTION	= STRTRAN(loFB2P.o_Frm_Avance.CAPTION,'FoxBin2Prg','Bin>Prg') + ' - WKS [' + lcWorkspaceDir + ']'
 				loFB2P.o_Frm_Avance.ALWAYSONTOP = .T.
-				loFB2P.o_Frm_Avance.SHOW()
-				loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
+				*loFB2P.o_Frm_Avance.SHOW()
+				*loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
 
 				FOR I = 1 TO lnFileCount
-					loFB2P.o_Frm_Avance.lbl_TAREA.CAPTION = 'Procesando ' + laFiles(I) +  '...'
-					loFB2P.o_Frm_Avance.nVALUE = I
+					*loFB2P.o_Frm_Avance.lbl_TAREA.CAPTION = 'Procesando ' + laFiles(I) +  '...'
+					*loFB2P.o_Frm_Avance.nVALUE = I
+					loFB2P.o_Frm_Avance.AvanceDelProceso( 'Procesando ' + laFiles(I) +  '...', I, lnFileCount, 0 )
 					INKEY()
-					.P_MakeText( '', laFiles(I), lcWorkspaceDir )
+
+					IF .P_MakeText( '', laFiles(I), lcWorkspaceDir )
+						lnProcesados	= lnProcesados + 1
+					ENDIF
 
 					IF LASTKEY()=27
 						.writeLog( 'USER CANCEL REQUEST.' )
