@@ -190,16 +190,17 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				*EXIT
 
 				loFB2P.cargar_frm_avance()
-				loFB2P.o_Frm_Avance.nMAX_VALUE = lnFileCount
-				loFB2P.o_Frm_Avance.nVALUE = 0
-				loFB2P.o_Frm_Avance.CAPTION	= loFB2P.o_Frm_Avance.CAPTION + ' - Bin>Prg (Press Esc to Cancel) WS:' + lcWorkspaceDir
+				*loFB2P.o_Frm_Avance.nMAX_VALUE = lnFileCount
+				*loFB2P.o_Frm_Avance.nVALUE = 0
+				loFB2P.o_Frm_Avance.CAPTION	= STRTRAN(loFB2P.o_Frm_Avance.CAPTION,'FoxBin2Prg','Bin>Prg') + ' - WKS [' + lcWorkspaceDir + ']'
 				loFB2P.o_Frm_Avance.ALWAYSONTOP = .T.
-				loFB2P.o_Frm_Avance.SHOW()
-				loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
+				*loFB2P.o_Frm_Avance.SHOW()
+				*loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
 
 				FOR I = 1 TO lnFileCount
-					loFB2P.o_Frm_Avance.lbl_TAREA.CAPTION = 'Procesando ' + laFiles(I) +  '...'
-					loFB2P.o_Frm_Avance.nVALUE = I
+					*loFB2P.o_Frm_Avance.lbl_TAREA.CAPTION = 'Procesando ' + laFiles(I) +  '...'
+					*loFB2P.o_Frm_Avance.nVALUE = I
+					loFB2P.o_Frm_Avance.AvanceDelProceso( 'Procesando ' + laFiles(I) +  '...', I, lnFileCount, 0 )
 					INKEY()
 
 					IF .P_MakeText( '', laFiles(I), lcWorkspaceDir )
@@ -272,16 +273,17 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				*EXIT
 
 				loFB2P.cargar_frm_avance()
-				loFB2P.o_Frm_Avance.nMAX_VALUE = lnFileCount
-				loFB2P.o_Frm_Avance.nVALUE = 0
-				loFB2P.o_Frm_Avance.CAPTION	= loFB2P.o_Frm_Avance.CAPTION + ' - Bin>Prg (Press Esc to Cancel) WS:' + lcWorkspaceDir
+				*loFB2P.o_Frm_Avance.nMAX_VALUE = lnFileCount
+				*loFB2P.o_Frm_Avance.nVALUE = 0
+				loFB2P.o_Frm_Avance.CAPTION	= STRTRAN(loFB2P.o_Frm_Avance.CAPTION,'FoxBin2Prg','Bin>Prg') + ' - WKS [' + lcWorkspaceDir + ']'
 				loFB2P.o_Frm_Avance.ALWAYSONTOP = .T.
-				loFB2P.o_Frm_Avance.SHOW()
-				loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
+				*loFB2P.o_Frm_Avance.SHOW()
+				*loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
 
 				FOR I = 1 TO lnFileCount
-					loFB2P.o_Frm_Avance.lbl_TAREA.CAPTION = 'Procesando ' + laFiles(I) +  '...'
-					loFB2P.o_Frm_Avance.nVALUE = I
+					*loFB2P.o_Frm_Avance.lbl_TAREA.CAPTION = 'Procesando ' + laFiles(I) +  '...'
+					*loFB2P.o_Frm_Avance.nVALUE = I
+					loFB2P.o_Frm_Avance.AvanceDelProceso( 'Procesando ' + laFiles(I) +  '...', I, lnFileCount, 0 )
 					INKEY()
 
 					IF .P_MakeText( '', laFiles(I), lcWorkspaceDir )

@@ -65,6 +65,8 @@ QUIT
 *DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'	&& For Debugging
 DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 	_MEMBERDATA	= [<VFPData>] ;
+		+ [<memberdata name="aprocessedfiles" display="aProcessedFiles"/>] ;
+		+ [<memberdata name="nprocessedfiles" display="nProcessedFiles"/>] ;
 		+ [<memberdata name="p_makebinandcompile" display="P_MakeBinAndCompile"/>] ;
 		+ [<memberdata name="procesararchivospendientes" display="ProcesarArchivosPendientes"/>] ;
 		+ [</VFPData>]
@@ -74,7 +76,9 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 		LOCAL THIS AS CL_SCM_2_LIB OF 'FOXPRO_PLASTICSCM_PRG2BIN.PRG'
 	#ENDIF
 
+	DIMENSION aProcessedFiles(1)
 	cOperation		= 'REGEN'
+	nProcessedFiles	= 0
 
 
 	PROCEDURE P_MakeBinAndCompile
@@ -90,7 +94,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 
 		TRY
 			LOCAL lcMenError, lcTempFile, lcExt, lcCmd, llPreInit, lcDebug, lcDontShowProgress, lcDontShowErrors ;
-				, llProcessed ;
+				, llProcessed, lcFilename ;
 				, loFB2P AS c_FoxBin2Prg OF FOXBIN2PRG.PRG
 
 			WITH THIS AS CL_SCM_2_LIB OF FOXPRO_PLASTICSCM_PRG2BIN.PRG
@@ -99,11 +103,21 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				loFB2P		= .o_FoxBin2Prg
 				lcExt		= UPPER( JUSTEXT( tcSourcePath ) )
 				toEx		= NULL
+				lcFilename	= JUSTFNAME( tcSourcePath )
+				lcFilename	= FORCEEXT( UPPER( LEFT( lcFilename, AT( '.', lcFilename ) -1 ) ), lcExt )
 
-				*-- FILTRO LAS EXTENSIONES PERMITIDAS (EXCLUYO LOS DBFs Y DBCs)
-				IF OCCURS( '.', JUSTFNAME(tcSourcePath) ) >= 2
-					.writeLog( '- Salteado por tener 2 puntos o más (' + tcSourcePath + ')' )
+				*-- SI EL ARCHIVO BASE YA FUE PROCESADO, NO VUELVO A PROCESAR SUS PARTES (SOLO SC2/VC2)
+				IF INLIST(lcExt,'SC2','VC2') AND .nProcessedFiles > 0 AND ASCAN( .aProcessedFiles, lcFilename, 1, 0, 0, 2+4 ) > 0
+					.writeLog( '- Proceso de [' + JUSTFNAME( tcSourcePath ) + '] salteado por haber procesado ya un archivo anterior con la misma base' )
 				ELSE
+					IF INLIST(lcExt,'SC2','VC2')
+						*-- Guardo el archivo nuevo en la lista, para no volver a procesar ninguno relacionado
+						*-- en la misma ejecución.
+						.nProcessedFiles	= .nProcessedFiles + 1
+						DIMENSION .aProcessedFiles(.nProcessedFiles)
+						.aProcessedFiles(.nProcessedFiles)	= lcFilename
+					ENDIF
+					
 					loFB2P.EvaluarConfiguracion( '','','','','','','','', tcSourcePath )
 					IF loFB2P.TieneSoporte_Prg2Bin( lcExt ) THEN
 						IF NOT llPreInit
@@ -189,16 +203,17 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				*EXIT
 
 				loFB2P.cargar_frm_avance()
-				loFB2P.o_Frm_Avance.nMAX_VALUE = lnFileCount
-				loFB2P.o_Frm_Avance.nVALUE = 0
-				loFB2P.o_Frm_Avance.CAPTION	= loFB2P.o_Frm_Avance.CAPTION + ' - Prg>Bin (Press Esc to Cancel) WS:' + lcWorkspaceDir
+				*loFB2P.o_Frm_Avance.nMAX_VALUE = lnFileCount
+				*loFB2P.o_Frm_Avance.nVALUE = 0
+				loFB2P.o_Frm_Avance.CAPTION	= STRTRAN(loFB2P.o_Frm_Avance.CAPTION,'FoxBin2Prg','Prg>Bin') + ' - WKS [' + lcWorkspaceDir + ']'
 				loFB2P.o_Frm_Avance.ALWAYSONTOP = .T.
-				loFB2P.o_Frm_Avance.SHOW()
-				loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
+				*loFB2P.o_Frm_Avance.SHOW()
+				*loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
 
 				FOR I = 1 TO lnFileCount
-					loFB2P.o_Frm_Avance.lbl_TAREA.CAPTION = 'Procesando ' + laFiles(I) +  '...'
-					loFB2P.o_Frm_Avance.nVALUE = I
+					*loFB2P.o_Frm_Avance.lbl_TAREA.CAPTION = 'Procesando ' + laFiles(I) +  '...'
+					*loFB2P.o_Frm_Avance.nVALUE = I
+					loFB2P.o_Frm_Avance.AvanceDelProceso( 'Procesando ' + laFiles(I) +  '...', I, lnFileCount, 0 )
 					INKEY()
 
 					IF .P_MakeBinAndCompile( '', laFiles(I), lcWorkspaceDir )
@@ -272,16 +287,17 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				*EXIT
 
 				loFB2P.cargar_frm_avance()
-				loFB2P.o_Frm_Avance.nMAX_VALUE = lnFileCount
-				loFB2P.o_Frm_Avance.nVALUE = 0
-				loFB2P.o_Frm_Avance.CAPTION	= loFB2P.o_Frm_Avance.CAPTION + ' - Prg>Bin (Press Esc to Cancel) WS:' + lcWorkspaceDir
+				*loFB2P.o_Frm_Avance.nMAX_VALUE = lnFileCount
+				*loFB2P.o_Frm_Avance.nVALUE = 0
+				loFB2P.o_Frm_Avance.CAPTION	= STRTRAN(loFB2P.o_Frm_Avance.CAPTION,'FoxBin2Prg','Prg>Bin') + ' - WKS [' + lcWorkspaceDir + ']'
 				loFB2P.o_Frm_Avance.ALWAYSONTOP = .T.
-				loFB2P.o_Frm_Avance.SHOW()
-				loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
+				*loFB2P.o_Frm_Avance.SHOW()
+				*loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
 
 				FOR I = 1 TO lnFileCount
-					loFB2P.o_Frm_Avance.lbl_TAREA.CAPTION = 'Procesando ' + laFiles(I) +  '...'
-					loFB2P.o_Frm_Avance.nVALUE = I
+					*loFB2P.o_Frm_Avance.lbl_TAREA.CAPTION = 'Procesando ' + laFiles(I) +  '...'
+					*loFB2P.o_Frm_Avance.nVALUE = I
+					loFB2P.o_Frm_Avance.AvanceDelProceso( 'Procesando ' + laFiles(I) +  '...', I, lnFileCount, 0 )
 					INKEY()
 
 					IF .P_MakeBinAndCompile( '', laFiles(I), lcWorkspaceDir )
