@@ -88,11 +88,18 @@ Custom "Open with..." CONFIGURATION:
 
 *Note 3: We will use this on the GUI as a trick to convert to text or to binary
 *Note 4: You can add Notepad++ too, it's useful to see text files directly from Plastic GUI
-*Note 5: It's a good idea to create shortcuts of this programs: "Normalize_FileNames.vbs",
-		"Convert_VFP9_BIN_2_PRG.vbs", "Convert_VFP9_PRG_2_BIN.vbs" and "VFP9_FoxBin2Prg.vbs" and copy these
-		accesses into "SendTo" folder of your Windows profile, so you can use this options
-		from contextual Windows File Manager menu, right-clicking over a selected file or directory
-		and choosing the required option
+*Note 5: WINDOWS FILE MANAGER SETUP
+
+You can create 3 shortcuts of FoxBin2Prg.exe and move them to "SendTo" folder on your Windows profile,
+so you can "send" the selected file (pjx,pj2,etc) to the selected option, and make on-the-fly conversions,
+then rename them as this (make sure you can see system file extensions):
+
+Name------------------------	Right-click/Properties/destination-----------	What you can do with this option---------
+FoxBin2Prg - Binary2Text.lnk	<path>\foxbin2prg.exe "BIN2PRG-INTERACTIVE"		Process directories or individual files
+FoxBin2Prg - Text2Binary.lnk	<path>\foxbin2prg.exe "PRG2BIN-INTERACTIVE"		Process directories or individual files
+FoxBin2Prg.lnk					<path>\foxbin2prg.exe "INTERACTIVE"				Process individual files
+
+In example: Select a file, right-click, SendTo -> FoxBin2Prg
 
 
 
@@ -226,11 +233,18 @@ CONFIGURACIÓN DE Custom "Abrir con..." personalizado:
 
 *Nota 3: Usaremos esto desde la interfaz como truco para convertir a texto o a binario
 *Nota 4: También puede agregar Notepad++, es útil para ver archivos de texto desde la interfaz de Plastic
-*Nota 5: Es conveniente crear accesos directos de los programas "Normalize_FileNames.vbs",
-		"Convert_VFP9_BIN_2_PRG.vbs", "Convert_VFP9_PRG_2_BIN.vbs" y "VFP9_FoxBin2Prg.vbs" y copiar estos
-		accesos en la carpeta "SendTo" del perfil de vuestro usuario, para poder usar estas opciones
-		desde el menú contextual del administrador de archivos de Windows, pudiendo hacer
-		click-derecho sobre un archivo o directorio y eligiendo la opción requerida
+*Nota 5: SETUP PARA EL ADMINISTRADOR DE ARCHIVOS DE WINDOWS
+
+Se puede crear 3 accesos directos de FoxBin2Prg.exe y moverlos a la carpeta "SendTo" de su perfil de usuario Windows,
+para poder "enviar" el archivo elegido (pjx,pj2,etc) a la opción seleccionada, y así hacer conversiones al vuelo,
+luego puede renombrar y modificar esos accesos directos como sigue (asegúrese de que puede ver las extensiones del sistema):
+
+Nombre------------------------	Click-Derecho/Propiedades/destino------------	Qué puede hacer con esta opción----------
+FoxBin2Prg - Binary2Text.lnk	<path>\foxbin2prg.exe "BIN2PRG-INTERACTIVE"		Procesar directorios o archivos individuales
+FoxBin2Prg - Text2Binary.lnk	<path>\foxbin2prg.exe "PRG2BIN-INTERACTIVE"		Procesar directorios o archivos individuales
+FoxBin2Prg.lnk					<path>\foxbin2prg.exe "INTERACTIVE"				Procesar archivos individuales
+
+Por ejemplo: Seleccionar un archivo, click-derecho, Enviar A -> FoxBin2Prg
 
 
 
