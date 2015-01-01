@@ -48,7 +48,7 @@ If GetBit(nFlags, 4) Then
 		MsgBox cEndOfProcessMsg & "! (" & cWithErrorsMsg & ") [p:" & nProcessedFilesCount & "]", 48+4096, WScript.ScriptName & " (" & oVFP9.Eval("oTarea.o_FoxBin2prg.c_FB2PRG_EXE_Version") & ")"
 		oVFP9.DoCmd("oTarea.o_FoxBin2prg.writeErrorLog_Flush()")
 		cErrFile = oVFP9.Eval("oTarea.o_FoxBin2prg.c_ErrorLogFile")
-		WSHShell.run cErrFile
+		WSHShell.run cErrFile,3
 	ElseIf oVFP9.Eval("oTarea.c_TextError") <> "" Then
 		MsgBox cEndOfProcessMsg & "!" & Chr(13) & Chr(13) & oVFP9.Eval("oTarea.c_TextError"), 64+4096, WScript.ScriptName
 	Else
