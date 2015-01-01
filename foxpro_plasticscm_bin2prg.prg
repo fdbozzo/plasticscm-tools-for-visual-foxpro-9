@@ -123,10 +123,10 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 					.writeLog( '- Regenerando texto para archivo [' + tcSourcePath + ']...' )
 					lcDebug				= ''
 					lcDontShowProgress	= '1'
-					lcDontShowErrors	= '0'
+					lcDontShowErrors	= '1'
 					*loFB2P.Ejecutar( tc_InputFile, tcType, tcTextName, tlGenText, tcDontShowErrors, tcDebug, tcDontShowProgress ;
 					, toModulo, toEx, tlRelanzarError, tcOriginalFileName, tcRecompile, tcNoTimestamps)
-					loFB2P.Ejecutar( tcSourcePath, '', '', '', lcDontShowErrors, lcDebug, lcDontShowProgress ;
+					loFB2P.Ejecutar( tcSourcePath, 'BIN2PRG', '', '', lcDontShowErrors, lcDebug, lcDontShowProgress ;
 						, '', '', .T., '', tcWorkspaceDir, '' )
 					llProcessed = .T.
 				ELSE
@@ -215,24 +215,22 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 					.FlushLog()
 				ENDFOR
 
-				loFB2P.o_Frm_Avance.HIDE()
+				*loFB2P.o_Frm_Avance.HIDE()
 
 				IF lnProcesados = 0
 					IF loFB2P.c_Language = "ES"
-						THIS.c_TextError	= 'Hay 0 Cambios Pendientes para Procesar!' + C_CR + C_CR + '> Cambie a la vista de Cambios Pendientes para usar este script de Cambios Pendientes.'
+						THIS.c_TextError	= 'Hay 0 Cambios Pendientes para Procesar!'
 					ELSE
-						THIS.c_TextError	= 'There are 0 pending changes to Process!' + C_CR + C_CR + '> Switch to Pending Changes view to use this Pending Changes script.'
+						THIS.c_TextError	= 'There are 0 pending changes to Process!'
 					ENDIF
 				ELSE
 					IF loFB2P.c_Language = "ES"
-						THIS.c_TextError	= 'Se han procesado ' + TRANSFORM(lnProcesados) + ' Cambios Pendientes.'
+						THIS.c_TextError	= 'Se han procesado ' + TRANSFORM(lnProcesados) + ' Cambios Pendientes'
 					ELSE
-						THIS.c_TextError	= '' + TRANSFORM(lnProcesados) + ' Pending Changes have been Processed.'
+						THIS.c_TextError	= '' + TRANSFORM(lnProcesados) + ' Pending Changes have been Processed'
 					ENDIF
 				ENDIF
 
-				loFB2P.o_Frm_Avance	= NULL
-				loFB2P	= NULL
 			ENDWITH && THIS
 
 		CATCH TO loException
@@ -244,6 +242,10 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				+ loException.USERVALUE
 			THIS.c_TextError	= lcMenError
 			THIS.writeLog( lcMenError )
+
+		FINALLY
+			loFB2P.descargar_frm_avance()
+			loFB2P	= NULL
 
 		ENDTRY
 
@@ -298,9 +300,6 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 					.FlushLog()
 				ENDFOR
 
-				loFB2P.o_Frm_Avance.HIDE()
-				loFB2P.o_Frm_Avance	= NULL
-				loFB2P	= NULL
 			ENDWITH && THIS
 
 		CATCH TO loException
@@ -312,6 +311,10 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				+ loException.USERVALUE
 			THIS.c_TextError	= lcMenError
 			THIS.writeLog( lcMenError )
+
+		FINALLY
+			loFB2P.descargar_frm_avance()
+			loFB2P	= NULL
 
 		ENDTRY
 

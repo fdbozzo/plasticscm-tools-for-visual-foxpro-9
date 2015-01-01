@@ -16,6 +16,7 @@
 ' USO.............: Desde la ventana "Cambios Pendientes", seleccione todos los archivos con "Abrir con..." este script
 '---------------------------------------------------------------------------------------------------
 Dim nExitCode, cEXETool, cEXETool2, nDebug
+Dim cEndOfProcessMsg, cWithErrorsMsg, cConvCancelByUserMsg, nProcessedFilesCount, cErrFile
 Set wshShell = CreateObject( "WScript.Shell" )
 Set oVFP9 = CreateObject("VisualFoxPro.Application.9")
 nExitCode = 0
@@ -36,19 +37,29 @@ oVFP9.DoCmd( "oTarea = CREATEOBJECT('CL_SCM_2_LIB')" )
 oVFP9.DoCmd( "oTarea.ProcesarArchivos('" & WScript.Arguments(0) & "')" )
 
 If GetBit(nFlags, 4) Then
+	cEndOfProcessMsg		= oVFP9.Eval("_SCREEN.o_FoxBin2Prg_Lang.C_END_OF_PROCESS_LOC")
+	cWithErrorsMsg			= oVFP9.Eval("_SCREEN.o_FoxBin2Prg_Lang.C_WITH_ERRORS_LOC")
+	cConvCancelByUserMsg	= oVFP9.Eval("_SCREEN.o_FoxBin2Prg_Lang.C_CONVERSION_CANCELLED_BY_USER_LOC")
+	nProcessedFilesCount	= oVFP9.Eval("oTarea.o_FoxBin2prg.n_ProcessedFilesCount")
+
 	If oVFP9.Eval("oTarea.l_Error") Then
-		MsgBox "End of Process! (with errors)" & Chr(13) & Chr(13) & oVFP9.Eval("oTarea.c_TextError"), 48, WScript.ScriptName
+		MsgBox cEndOfProcessMsg & "! (" & cWithErrorsMsg & ") [p:" & nProcessedFilesCount & "]" & Chr(13) & Chr(13) & oVFP9.Eval("oTarea.c_TextError"), 48+4096, WScript.ScriptName
+	ElseIf oVFP9.Eval("oTarea.o_FoxBin2Prg.l_Error") Then
+		MsgBox cEndOfProcessMsg & "! (" & cWithErrorsMsg & ") [p:" & nProcessedFilesCount & "]", 48+4096, WScript.ScriptName & " (" & oVFP9.Eval("oTarea.o_FoxBin2prg.c_FB2PRG_EXE_Version") & ")"
+		oVFP9.DoCmd("oTarea.o_FoxBin2prg.writeErrorLog_Flush()")
+		cErrFile = oVFP9.Eval("oTarea.o_FoxBin2prg.c_ErrorLogFile")
+		WSHShell.run cErrFile,3
 	ElseIf oVFP9.Eval("oTarea.c_TextError") <> "" Then
-		MsgBox "End of Process!" & Chr(13) & Chr(13) & oVFP9.Eval("oTarea.c_TextError"), 64, WScript.ScriptName
+		MsgBox cEndOfProcessMsg & "!" & Chr(13) & Chr(13) & oVFP9.Eval("oTarea.c_TextError"), 64+4096, WScript.ScriptName
 	Else
-		MsgBox "End of Process!", 64, WScript.ScriptName
+		MsgBox cEndOfProcessMsg & "! [p:" & nProcessedFilesCount & "]", 64+4096, WScript.ScriptName
 	End If
 End If
 
 oVFP9.DoCmd( "CLEAR ALL" )
 Set oVFP9 = Nothing
 wshShell.SendKeys("{F5}")
-WScript.Quit(nExitCode)
+WScript.Quit nExitCode
 
 
 Function GetBit(lngValue, BitNum)

@@ -1721,7 +1721,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 			tnFileCount	= ALINES(taFiles, FILETOSTR( lcTempFile ), 1+4 )
 			
 			IF NOT .lDebug THEN
-				ERASE (lcTempFile)
+			*	ERASE (lcTempFile)
 			ENDIF
 		ENDWITH && THIS
 	ENDPROC
