@@ -95,7 +95,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 		TRY
 			LOCAL lcMenError, lcTempFile, lcExt, lcCmd, llPreInit, lcDebug, lcDontShowProgress, lcDontShowErrors ;
 				, llProcessed, lcFilename ;
-				, loFB2P AS c_FoxBin2Prg OF FOXBIN2PRG.PRG
+				, loFB2P AS c_FoxBin2Prg OF 'FOXBIN2PRG.PRG'
 
 			WITH THIS AS CL_SCM_2_LIB OF FOXPRO_PLASTICSCM_PRG2BIN.PRG
 				llPreInit	= .l_Initialized
@@ -103,23 +103,31 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				loFB2P		= .o_FoxBin2Prg
 				lcExt		= UPPER( JUSTEXT( tcSourcePath ) )
 				toEx		= NULL
-				lcFilename	= JUSTFNAME( tcSourcePath )
-				lcFilename	= FORCEEXT( UPPER( LEFT( lcFilename, AT( '.', lcFilename ) -1 ) ), lcExt )
+				*lcFilename	= JUSTFNAME( tcSourcePath )
+				*lcFilename	= FORCEEXT( UPPER( LEFT( lcFilename, AT( '.', lcFilename ) -1 ) ), lcExt )
 
 				*-- SI EL ARCHIVO BASE YA FUE PROCESADO, NO VUELVO A PROCESAR SUS PARTES (SOLO SC2/VC2)
-				IF INLIST(lcExt,'SC2','VC2') AND .nProcessedFiles > 0 AND ASCAN( .aProcessedFiles, lcFilename, 1, 0, 0, 2+4 ) > 0
-					.writeLog( '- Proceso de [' + JUSTFNAME( tcSourcePath ) + '] salteado por haber procesado ya un archivo anterior con la misma base' )
-				ELSE
-					IF INLIST(lcExt,'SC2','VC2')
-						*-- Guardo el archivo nuevo en la lista, para no volver a procesar ninguno relacionado
-						*-- en la misma ejecución.
-						.nProcessedFiles	= .nProcessedFiles + 1
-						DIMENSION .aProcessedFiles(.nProcessedFiles)
-						.aProcessedFiles(.nProcessedFiles)	= lcFilename
-					ENDIF
+				*IF INLIST(lcExt,'SC2','VC2') AND .nProcessedFiles > 0 AND ASCAN( .aProcessedFiles, lcFilename, 1, 0, 0, 2+4 ) > 0
+				*	.writeLog( '- Proceso de [' + JUSTFNAME( tcSourcePath ) + '] salteado por haber procesado ya un archivo anterior con la misma base' )
+				*ELSE
+				*	IF INLIST(lcExt,'SC2','VC2')
+				*		*-- Guardo el archivo nuevo en la lista, para no volver a procesar ninguno relacionado
+				*		*-- en la misma ejecución.
+				*		.nProcessedFiles	= .nProcessedFiles + 1
+				*		DIMENSION .aProcessedFiles(.nProcessedFiles)
+				*		.aProcessedFiles(.nProcessedFiles)	= lcFilename
+				*	ENDIF
 					
 					loFB2P.EvaluarConfiguracion( '','','','','','','','', tcSourcePath )
-					IF loFB2P.TieneSoporte_Prg2Bin( lcExt ) THEN
+
+					DO CASE
+					CASE NOT loFB2P.TieneSoporte_Prg2Bin( lcExt )
+						.writeLog( '- Salteado por no tener soporte para conversión (' + tcSourcePath + ')' )
+
+					CASE loFB2P.wasProcessed( tcSourcePath )
+						.writeLog( '- Salteado por haber sido procesado anteriormente (' + tcSourcePath + ')' )
+
+					OTHERWISE
 						IF NOT llPreInit
 							.writeLog( TTOC(DATETIME()) + '  ---' + PADR( PROGRAM(),77, '-' ) )
 						ENDIF
@@ -139,20 +147,15 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 						loFB2P.Ejecutar( tcSourcePath, 'PRG2BIN', '', '', lcDontShowErrors, lcDebug, lcDontShowProgress ;
 							, '', '', .T., '', tcWorkspaceDir, '' )
 						llProcessed	= .T.
-					ELSE
-						.writeLog( '- Salteado por no tener soporte como origen de texto (' + tcSourcePath + ')' )
-					ENDIF
-				ENDIF
-
-
-				*-- CAPITALIZO EL NOMBRE DEL ARCHIVO
-				*.normalizarCapitalizacionArchivos( tcSourcePath )
-
+					ENDCASE
+				*ENDIF
 
 			ENDWITH && THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 
 		CATCH TO toEx WHEN toEx.MESSAGE = '0'
 			toEx	= NULL
+
+		CATCH TO toEx WHEN toEx.ErrorNo = 1799	&& Conversion Cancelled
 
 		CATCH TO toEx
 			THIS.l_Error		= .T.
@@ -185,12 +188,14 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 		LPARAMETERS tcFileName
 
 		TRY
-			LOCAL lcMenError, lnFileCount, lcWorkspaceDir, laFiles(1), I, lnProcesados ;
+			LOCAL lcMenError, lnFileCount, lcWorkspaceDir, laFiles(1), I, lnProcesados, llUserCanceled ;
+				, loLang as CL_LANG OF 'FOXBIN2PRG.PRG' ;
 				, loException AS EXCEPTION ;
-				, loFB2P AS c_FoxBin2Prg OF FOXBIN2PRG.PRG
+				, loFB2P AS c_FoxBin2Prg OF 'FOXBIN2PRG.PRG'
 
 			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_PRG2BIN.PRG'
 				.Initialize()
+				loLang			= _SCREEN.o_FoxBin2Prg_Lang
 				lcWorkspaceDir	= .ObtenerWorkspaceDir( tcFileName )
 				loFB2P			= .o_FoxBin2Prg
 				lnProcesados	= 0
@@ -199,29 +204,20 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				.writeLog( 'Encontrados ' + TRANSFORM(lnFileCount) + ' archivos para filtrar y procesar' )
 				.writeLog( 'Se recompilará desde ' + lcWorkspaceDir )
 
-				*MESSAGEBOX( 'Se recompilará desde ' + lcWorkspaceDir + ' ' + TRANSFORM(lnFileCount) + ' archivo(s)', 64+4096, PROGRAM() )
-				*EXIT
-
 				loFB2P.cargar_frm_avance()
-				*loFB2P.o_Frm_Avance.nMAX_VALUE = lnFileCount
-				*loFB2P.o_Frm_Avance.nVALUE = 0
 				loFB2P.o_Frm_Avance.CAPTION	= STRTRAN(loFB2P.o_Frm_Avance.CAPTION,'FoxBin2Prg','Prg>Bin') + ' - WKS [' + lcWorkspaceDir + ']'
 				loFB2P.o_Frm_Avance.ALWAYSONTOP = .T.
-				*loFB2P.o_Frm_Avance.SHOW()
 				*loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
 
 				FOR I = 1 TO lnFileCount
-					*loFB2P.o_Frm_Avance.lbl_TAREA.CAPTION = 'Procesando ' + laFiles(I) +  '...'
-					*loFB2P.o_Frm_Avance.nVALUE = I
 					loFB2P.o_Frm_Avance.AvanceDelProceso( 'Procesando ' + laFiles(I) +  '...', I, lnFileCount, 0 )
-					INKEY()
 
-					IF .P_MakeBinAndCompile( '', laFiles(I), lcWorkspaceDir )
+					IF .P_MakeBinAndCompile( @loException, laFiles(I), lcWorkspaceDir )
 						lnProcesados	= lnProcesados + 1
 					ENDIF
 
-					IF LASTKEY()=27
-						.writeLog( 'USER CANCEL REQUEST.' )
+					IF VARTYPE(loException) = "O" AND loException.ErrorNo = 1799 THEN	&& Conversion Cancelled
+						llUserCanceled	= .T.
 						EXIT
 					ENDIF
 
@@ -257,7 +253,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 			THIS.writeLog( lcMenError )
 
 		FINALLY
-			loFB2P.descargar_frm_avance()
+			loFB2P.descargar_frm_avance(.T.)
 			loFB2P	= NULL
 
 		ENDTRY
@@ -271,12 +267,14 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 		LPARAMETERS tcFileName
 
 		TRY
-			LOCAL lcMenError, lnFileCount, lcWorkspaceDir, laFiles(1), I, lnProcesados ;
+			LOCAL lcMenError, lnFileCount, lcWorkspaceDir, laFiles(1), I, lnProcesados, llUserCanceled ;
+				, loLang as CL_LANG OF 'FOXBIN2PRG.PRG' ;
 				, loException AS EXCEPTION ;
-				, loFB2P AS c_FoxBin2Prg OF FOXBIN2PRG.PRG
+				, loFB2P AS c_FoxBin2Prg OF 'FOXBIN2PRG.PRG'
 
 			WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 				.Initialize()
+				loLang			= _SCREEN.o_FoxBin2Prg_Lang
 				lcWorkspaceDir	= .ObtenerWorkspaceDir( tcFileName )
 				loFB2P			= .o_FoxBin2Prg
 				lnProcesados	= 0
@@ -285,29 +283,20 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				.writeLog( 'Encontrados ' + TRANSFORM(lnFileCount) + ' archivos para filtrar y procesar' )
 				.writeLog( 'Se recompilará desde ' + lcWorkspaceDir )
 
-				*MESSAGEBOX( 'Se recompilará desde ' + lcWorkspaceDir + ' ' + TRANSFORM(lnFileCount) + ' archivo(s)', 64+4096, PROGRAM() )
-				*EXIT
-
 				loFB2P.cargar_frm_avance()
-				*loFB2P.o_Frm_Avance.nMAX_VALUE = lnFileCount
-				*loFB2P.o_Frm_Avance.nVALUE = 0
 				loFB2P.o_Frm_Avance.CAPTION	= STRTRAN(loFB2P.o_Frm_Avance.CAPTION,'FoxBin2Prg','Prg>Bin') + ' - WKS [' + lcWorkspaceDir + ']'
 				loFB2P.o_Frm_Avance.ALWAYSONTOP = .T.
-				*loFB2P.o_Frm_Avance.SHOW()
 				*loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
 
 				FOR I = 1 TO lnFileCount
-					*loFB2P.o_Frm_Avance.lbl_TAREA.CAPTION = 'Procesando ' + laFiles(I) +  '...'
-					*loFB2P.o_Frm_Avance.nVALUE = I
 					loFB2P.o_Frm_Avance.AvanceDelProceso( 'Procesando ' + laFiles(I) +  '...', I, lnFileCount, 0 )
-					INKEY()
 
-					IF .P_MakeBinAndCompile( '', laFiles(I), lcWorkspaceDir )
+					IF .P_MakeBinAndCompile( @loException, laFiles(I), lcWorkspaceDir )
 						lnProcesados	= lnProcesados + 1
 					ENDIF
 
-					IF LASTKEY()=27
-						.writeLog( 'USER CANCEL REQUEST.' )
+					IF VARTYPE(loException) = "O" AND loException.ErrorNo = 1799 THEN	&& Conversion Cancelled
+						llUserCanceled	= .T.
 						EXIT
 					ENDIF
 
@@ -327,7 +316,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 			THIS.writeLog( lcMenError )
 
 		FINALLY
-			loFB2P.descargar_frm_avance()
+			loFB2P.descargar_frm_avance(.T.)
 			loFB2P	= NULL
 
 		ENDTRY
