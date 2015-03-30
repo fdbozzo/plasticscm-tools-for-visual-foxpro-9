@@ -200,6 +200,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				loFB2P			= .o_FoxBin2Prg
 				lnProcesados	= 0
 				.ObtenerCambiosPendientes( lcWorkspaceDir, @laFiles, @lnFileCount )
+				.writeLog()
 				.writeLog( TTOC(DATETIME()) + '  ---' + PADR( PROGRAM(),77, '-' ) )
 				.writeLog( 'Encontrados ' + TRANSFORM(lnFileCount) + ' archivos para filtrar y procesar' )
 				.writeLog( 'Se recompilará desde ' + lcWorkspaceDir )
@@ -279,6 +280,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				loFB2P			= .o_FoxBin2Prg
 				lnProcesados	= 0
 				.ObtenerArchivosDelDirectorio( lcWorkspaceDir, @laFiles, @lnFileCount )
+				.writeLog()
 				.writeLog( TTOC(DATETIME()) + '  ---' + PADR( PROGRAM(),77, '-' ) )
 				.writeLog( 'Encontrados ' + TRANSFORM(lnFileCount) + ' archivos para filtrar y procesar' )
 				.writeLog( 'Se recompilará desde ' + lcWorkspaceDir )

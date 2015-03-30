@@ -302,19 +302,21 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 			ENDIF
 
 			IF NOT .l_Initialized
-				LOCAL lcPlasticSCM ;
+				LOCAL lcPlasticSCM, lcScriptExeVersion, lcFoxBin2PrgExeVersion, lcFoxBin2PrgExe, laVersion(1) ;
 					, loShell AS WScript.SHELL
 
+				STORE '' TO lcScriptExeVersion, lcFoxBin2PrgExeVersion
 				.oShell			= CREATEOBJECT("WScript.Shell")
 				.oFSO			= CREATEOBJECT("scripting.filesystemobject")
 				.cSys16			= SYS(16)
 				.cSys16			= SUBSTR( .cSys16, AT( GETWORDNUM( .cSys16, 2), .cSys16 ) + LEN( GETWORDNUM( .cSys16, 2) ) + 1 )
 				.cEXEPath		= JUSTPATH( .cSys16 )
 				.cPlasticPath	= ''
+				lcFoxBin2PrgExe	= FORCEPATH( "FOXBIN2PRG.EXE", .cEXEPath )
 				IF _VFP.StartMode = 0 THEN
 					SET PROCEDURE TO ( FORCEPATH( "FOXBIN2PRG.PRG", .cEXEPath ) ) ADDITIVE
 				ELSE
-					SET PROCEDURE TO ( FORCEPATH( "FOXBIN2PRG.EXE", .cEXEPath ) ) ADDITIVE
+					SET PROCEDURE TO ( lcFoxBin2PrgExe ) ADDITIVE
 				ENDIF
 				.o_FoxBin2Prg	= CREATEOBJECT("c_FoxBin2Prg")
 				*.o_FoxBin2Prg.EvaluarConfiguracion( tcDontShowProgress, tcDontShowErrors, tcNoTimestamps, tcDebug, tcRecompile, tcExtraBackupLevels, tcClearUniqueID, tcOptimizeByFilestamp, tc_InputFile )
@@ -323,7 +325,21 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				.writeLog( 'Se evaluó la configuración para el archivo [' + TRANSFORM(tcSourcePath) + ']' )
 				.lDebug			= .o_FoxBin2Prg.l_Debug	&& ( FILE( FORCEEXT( .cSys16, 'LOG' ) ) )
 				.writeLog( 'lDebug				=' + TRANSFORM(.lDebug) )
-				.writeLog( 'sys(16)				=' + TRANSFORM(.cSys16) )
+				lcScriptExeVersion		= 'Unknown'
+				lcFoxBin2PrgExeVersion	= 'Unknown'
+
+				IF UPPER(JUSTEXT(.cSys16)) = 'EXE' THEN
+					IF AGETFILEVERSION( laVersion, .cSys16 ) > 0 THEN
+						lcScriptExeVersion	= laVersion(11)
+					ENDIF
+				ENDIF
+				
+				IF AGETFILEVERSION( laVersion, lcFoxBin2PrgExe ) > 0 THEN
+					lcFoxBin2PrgExeVersion	= laVersion(11)
+				ENDIF
+
+				.writeLog( 'FoxBin2Prg			=' + TRANSFORM(lcFoxBin2PrgExe) + ' - Version ' + lcFoxBin2PrgExeVersion )
+				.writeLog( 'sys(16)				=' + TRANSFORM(.cSys16) + ' - Version ' + lcScriptExeVersion )
 				.writeLog( 'cEXEPath			=' + TRANSFORM(.cEXEPath) )
 
 				IF INLIST( .cOperation, 'DIFF', 'MERGE', 'CHECKIN', 'REGEN' )
@@ -1676,6 +1692,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 		WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 			=RAND(-100000)
+			.writeLog()
 			lcTempFile	= '"' + FORCEPATH('cm' + SYS(2015) + '_' + TRANSFORM(RAND()*100000,'@L ######') + '.txt', SYS(2023)) + '"'
 			lcCmd		= GETENV("ComSpec") + " /C " + JUSTFNAME(.cCM) + ' lwk --format={2} > ' + lcTempFile
 			.writeLog( lcCmd )
@@ -1716,6 +1733,8 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 			=RAND(-100000)
 			lcTempFile	= '"' + FORCEPATH('cm' + SYS(2015) + '_' + TRANSFORM(RAND()*100000,'@L ######') + '.txt', SYS(2023)) + '"'
 			lcCmd		= GETENV('ComSpec') + ' /C ' + JUSTFNAME(.cCM) + ' fc -R "' + tcWorkspaceDir + '" > ' + lcTempFile
+			.writeLog()
+			.writeLog( '- Obteniendo cambios pendientes' )
 			.writeLog( lcCmd )
 			.oShell.RUN( lcCmd, 0, .T. )
 			tnFileCount	= ALINES(taFiles, FILETOSTR( lcTempFile ), 1+4 )
