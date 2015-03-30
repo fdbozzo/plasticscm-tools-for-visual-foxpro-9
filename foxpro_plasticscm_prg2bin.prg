@@ -65,8 +65,6 @@ QUIT
 *DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'	&& For Debugging
 DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 	_MEMBERDATA	= [<VFPData>] ;
-		+ [<memberdata name="aprocessedfiles" display="aProcessedFiles"/>] ;
-		+ [<memberdata name="nprocessedfiles" display="nProcessedFiles"/>] ;
 		+ [<memberdata name="p_makebinandcompile" display="P_MakeBinAndCompile"/>] ;
 		+ [<memberdata name="procesararchivospendientes" display="ProcesarArchivosPendientes"/>] ;
 		+ [</VFPData>]
@@ -76,9 +74,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 		LOCAL THIS AS CL_SCM_2_LIB OF 'FOXPRO_PLASTICSCM_PRG2BIN.PRG'
 	#ENDIF
 
-	DIMENSION aProcessedFiles(1)
 	cOperation		= 'REGEN'
-	nProcessedFiles	= 0
 
 
 	PROCEDURE P_MakeBinAndCompile
@@ -94,7 +90,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 
 		TRY
 			LOCAL lcMenError, lcTempFile, lcExt, lcCmd, llPreInit, lcDebug, lcDontShowProgress, lcDontShowErrors ;
-				, llProcessed, lcFilename ;
+				, llProcessed ;
 				, loFB2P AS c_FoxBin2Prg OF 'FOXBIN2PRG.PRG'
 
 			WITH THIS AS CL_SCM_2_LIB OF FOXPRO_PLASTICSCM_PRG2BIN.PRG
@@ -103,52 +99,37 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				loFB2P		= .o_FoxBin2Prg
 				lcExt		= UPPER( JUSTEXT( tcSourcePath ) )
 				toEx		= NULL
-				*lcFilename	= JUSTFNAME( tcSourcePath )
-				*lcFilename	= FORCEEXT( UPPER( LEFT( lcFilename, AT( '.', lcFilename ) -1 ) ), lcExt )
 
-				*-- SI EL ARCHIVO BASE YA FUE PROCESADO, NO VUELVO A PROCESAR SUS PARTES (SOLO SC2/VC2)
-				*IF INLIST(lcExt,'SC2','VC2') AND .nProcessedFiles > 0 AND ASCAN( .aProcessedFiles, lcFilename, 1, 0, 0, 2+4 ) > 0
-				*	.writeLog( '- Proceso de [' + JUSTFNAME( tcSourcePath ) + '] salteado por haber procesado ya un archivo anterior con la misma base' )
-				*ELSE
-				*	IF INLIST(lcExt,'SC2','VC2')
-				*		*-- Guardo el archivo nuevo en la lista, para no volver a procesar ninguno relacionado
-				*		*-- en la misma ejecución.
-				*		.nProcessedFiles	= .nProcessedFiles + 1
-				*		DIMENSION .aProcessedFiles(.nProcessedFiles)
-				*		.aProcessedFiles(.nProcessedFiles)	= lcFilename
-				*	ENDIF
-					
-					loFB2P.EvaluarConfiguracion( '','','','','','','','', tcSourcePath )
+				loFB2P.EvaluarConfiguracion( '','','','','','','','', tcSourcePath )
 
-					DO CASE
-					CASE NOT loFB2P.TieneSoporte_Prg2Bin( lcExt )
-						.writeLog( '- Salteado por no tener soporte para conversión (' + tcSourcePath + ')' )
+				DO CASE
+				CASE NOT loFB2P.TieneSoporte_Prg2Bin( lcExt )
+					.writeLog( '- Salteado por no tener soporte para conversión (' + tcSourcePath + ')' )
 
-					CASE loFB2P.wasProcessed( tcSourcePath )
-						.writeLog( '- Salteado por haber sido procesado anteriormente (' + tcSourcePath + ')' )
+				CASE loFB2P.wasProcessed( tcSourcePath )
+					.writeLog( '- Salteado por haber sido procesado anteriormente (' + tcSourcePath + ')' )
 
-					OTHERWISE
-						IF NOT llPreInit
-							.writeLog( TTOC(DATETIME()) + '  ---' + PADR( PROGRAM(),77, '-' ) )
-						ENDIF
+				OTHERWISE
+					IF NOT llPreInit
+						.writeLog( TTOC(DATETIME()) + '  ---' + PADR( PROGRAM(),77, '-' ) )
+					ENDIF
 
-						*-- OBTENGO EL WORKSPACE DEL ITEM
-						IF EMPTY(tcWorkspaceDir)
-							tcWorkspaceDir	= .ObtenerWorkspaceDir(tcSourcePath)
-						ENDIF
+					*-- OBTENGO EL WORKSPACE DEL ITEM
+					IF EMPTY(tcWorkspaceDir)
+						tcWorkspaceDir	= .ObtenerWorkspaceDir(tcSourcePath)
+					ENDIF
 
-						*-- REGENERO EL BINARIO Y RECOMPILO
-						.writeLog( '- Regenerando binario para archivo [' + tcSourcePath + ']...' )
-						lcDebug				= ''
-						lcDontShowProgress	= '1'
-						lcDontShowErrors	= '1'
-						*loFB2P.Ejecutar( tc_InputFile, tcType, tcTextName, tlGenText, tcDontShowErrors, tcDebug, tcDontShowProgress ;
-						, toModulo, toEx, tlRelanzarError, tcOriginalFileName, tcRecompile, tcNoTimestamps)
-						loFB2P.Ejecutar( tcSourcePath, 'PRG2BIN', '', '', lcDontShowErrors, lcDebug, lcDontShowProgress ;
-							, '', '', .T., '', tcWorkspaceDir, '' )
-						llProcessed	= .T.
-					ENDCASE
-				*ENDIF
+					*-- REGENERO EL BINARIO Y RECOMPILO
+					.writeLog( '- Regenerando binario para archivo [' + tcSourcePath + ']...' )
+					lcDebug				= ''
+					lcDontShowProgress	= '1'
+					lcDontShowErrors	= '1'
+					*loFB2P.Ejecutar( tc_InputFile, tcType, tcTextName, tlGenText, tcDontShowErrors, tcDebug, tcDontShowProgress ;
+					, toModulo, toEx, tlRelanzarError, tcOriginalFileName, tcRecompile, tcNoTimestamps)
+					loFB2P.Ejecutar( tcSourcePath, 'PRG2BIN', '', '', lcDontShowErrors, lcDebug, lcDontShowProgress ;
+						, '', '', .T., '', tcWorkspaceDir, '' )
+					llProcessed	= .T.
+				ENDCASE
 
 			ENDWITH && THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 
