@@ -263,6 +263,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 	PROCEDURE INIT
 		SET DATE TO YMD
 		SET HOURS TO 24
+		SET CENTURY ON
 		SET SAFETY OFF
 		SET TALK OFF
 		SET NOTIFY OFF
@@ -338,7 +339,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 					lcFoxBin2PrgExeVersion	= laVersion(11)
 				ENDIF
 
-				.writeLog( 'FoxBin2Prg			=' + TRANSFORM(lcFoxBin2PrgExe) + ' - Version ' + lcFoxBin2PrgExeVersion )
+				.writeLog( 'FoxBin2Prg			=' + TRANSFORM(lcFoxBin2PrgExe) + ' - Version ' + lcFoxBin2PrgExeVersion + ' (FoxPro Version: ' + VERSION(4) + ')' )
 				.writeLog( 'sys(16)				=' + TRANSFORM(.cSys16) + ' - Version ' + lcScriptExeVersion )
 				.writeLog( 'cEXEPath			=' + TRANSFORM(.cEXEPath) )
 
