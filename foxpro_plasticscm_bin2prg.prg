@@ -140,6 +140,9 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 
 		CATCH TO toEx WHEN toEx.ErrorNo = 1799	&& Conversion Cancelled
 
+		CATCH TO toEx WHEN NOT INLIST(toEx.ErrorNo, 1098, 2071)	&& Errores no controlados
+			THROW
+
 		CATCH TO toEx
 			THIS.l_Error		= .T.
 			lcMenError	= 'Error ' + TRANSFORM(toEx.ERRORNO) + ', ' + toEx.MESSAGE + CR_LF ;

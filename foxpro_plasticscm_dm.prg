@@ -324,7 +324,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				*.o_FoxBin2Prg.EvaluarConfiguracion( '1', '1' )
 				.o_FoxBin2Prg.EvaluarConfiguracion( '1', '1', '', '', '', '', '', '', tcSourcePath )
 				.writeLog( 'Se evaluó la configuración para el archivo [' + TRANSFORM(tcSourcePath) + ']' )
-				.lDebug			= .o_FoxBin2Prg.l_Debug	&& ( FILE( FORCEEXT( .cSys16, 'LOG' ) ) )
+				.lDebug			= (.o_FoxBin2Prg.n_Debug > 0)	&& ( FILE( FORCEEXT( .cSys16, 'LOG' ) ) )
 				.writeLog( 'lDebug				=' + TRANSFORM(.lDebug) )
 				lcScriptExeVersion		= 'Unknown'
 				lcFoxBin2PrgExeVersion	= 'Unknown'

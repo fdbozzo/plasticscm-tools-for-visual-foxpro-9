@@ -108,17 +108,16 @@ Else
 		cConvCancelByUserMsg	= oVFP9.Eval("_SCREEN.o_FoxBin2Prg_Lang.C_CONVERSION_CANCELLED_BY_USER_LOC")
 		nProcessedFilesCount	= oVFP9.Eval("o_FoxBin2prg.n_ProcessedFilesCount")
 
-		If nExitCode = 1799 Then
-			MsgBox cConvCancelByUserMsg & "!", 64+4096, WScript.ScriptName & " (" & oVFP9.Eval("o_FoxBin2prg.c_FB2PRG_EXE_Version") & ")"
-			oVFP9.DoCmd("o_FoxBin2prg.writeErrorLog_Flush()")
-			cErrFile = oVFP9.Eval("o_FoxBin2prg.c_ErrorLogFile")
-			WSHShell.run cErrFile,3
-
-		ElseIf oVFP9.Eval("o_FoxBin2prg.l_Error") Then
+		If oVFP9.Eval("o_FoxBin2prg.l_Error") Then
 			MsgBox cEndOfProcessMsg & "! (" & cWithErrorsMsg & ")", 48+4096, WScript.ScriptName & " (" & oVFP9.Eval("o_FoxBin2prg.c_FB2PRG_EXE_Version") & ")"
 			oVFP9.DoCmd("o_FoxBin2prg.writeErrorLog_Flush()")
 			cErrFile = oVFP9.Eval("o_FoxBin2prg.c_ErrorLogFile")
 			WSHShell.run cErrFile,3		'Show Error in Maximized Window
+		ElseIf nExitCode = 1799 Then
+			MsgBox cConvCancelByUserMsg & "!", 64+4096, WScript.ScriptName & " (" & oVFP9.Eval("o_FoxBin2prg.c_FB2PRG_EXE_Version") & ")"
+			oVFP9.DoCmd("o_FoxBin2prg.writeErrorLog_Flush()")
+			cErrFile = oVFP9.Eval("o_FoxBin2prg.c_ErrorLogFile")
+			WSHShell.run cErrFile,3
 		Else
 			MsgBox cEndOfProcessMsg & "!", 64+4096, WScript.ScriptName & " (" & oVFP9.Eval("o_FoxBin2prg.c_FB2PRG_EXE_Version") & ")"
 		End If
