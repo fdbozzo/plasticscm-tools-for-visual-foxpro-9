@@ -35,7 +35,6 @@ oVFP9.DoCmd( "SET PROCEDURE TO '" & cEXETool & "' ADDITIVE" )
 oVFP9.DoCmd( "PUBLIC oTarea" )
 oVFP9.DoCmd( "oTarea = CREATEOBJECT('CL_SCM_2_LIB')" )
 oVFP9.DoCmd( "oTarea.ProcesarArchivosPendientes('" & WScript.Arguments(0) & "')" )
-nExitCode = oVFP9.Eval("_SCREEN.ExitCode")
 
 If GetBit(nFlags, 4) Then
 	cEndOfProcessMsg		= oVFP9.Eval("_SCREEN.o_FoxBin2prg_Lang.C_END_OF_PROCESS_LOC")
@@ -44,8 +43,10 @@ If GetBit(nFlags, 4) Then
 	nProcessedFilesCount	= oVFP9.Eval("oTarea.o_FoxBin2prg.n_ProcessedFilesCount")
 
 	If oVFP9.Eval("oTarea.l_Error") Then
+		nExitCode = 1
 		MsgBox cEndOfProcessMsg & "! (" & cWithErrorsMsg & ")" & Chr(13) & Chr(13) & oVFP9.Eval("oTarea.c_TextError"), 48+4096, WScript.ScriptName
 	ElseIf oVFP9.Eval("oTarea.o_FoxBin2prg.l_Error") Then
+		nExitCode = oVFP9.Eval("_SCREEN.ExitCode")
 		If nExitCode = 1799 Then
 			MsgBox cConvCancelByUserMsg & "!", 64+4096, WScript.ScriptName & " (" & oVFP9.Eval("oTarea.o_FoxBin2prg.c_FB2PRG_EXE_Version") & ")"
 		Else
@@ -55,6 +56,7 @@ If GetBit(nFlags, 4) Then
 			WSHShell.run cErrFile,3		'Show Error in Maximized Window
 		End If
 	ElseIf oVFP9.Eval("oTarea.c_TextError") <> "" Then
+		nExitCode = 1
 		MsgBox cEndOfProcessMsg & "!" & Chr(13) & Chr(13) & oVFP9.Eval("oTarea.c_TextError"), 64+4096, WScript.ScriptName
 	Else
 		MsgBox cEndOfProcessMsg & "!", 64+4096, WScript.ScriptName

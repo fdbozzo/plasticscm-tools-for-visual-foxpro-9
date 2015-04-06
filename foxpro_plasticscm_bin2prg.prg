@@ -239,8 +239,10 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 			THIS.writeLog( lcMenError )
 
 		FINALLY
-			loFB2P.descargar_frm_avance(.T.)
-			loFB2P	= NULL
+			IF VARTYPE(loFB2P) = "O" AND NOT ISNULL(loFB2P) THEN
+				loFB2P.descargar_frm_avance(.T.)
+				loFB2P	= NULL
+			ENDIF
 
 		ENDTRY
 
@@ -303,8 +305,10 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 			THIS.writeLog( lcMenError )
 
 		FINALLY
-			loFB2P.descargar_frm_avance(.T.)
-			loFB2P	= NULL
+			IF VARTYPE(loFB2P) = "O" AND NOT ISNULL(loFB2P) THEN
+				loFB2P.descargar_frm_avance(.T.)
+				loFB2P	= NULL
+			ENDIF
 
 		ENDTRY
 
