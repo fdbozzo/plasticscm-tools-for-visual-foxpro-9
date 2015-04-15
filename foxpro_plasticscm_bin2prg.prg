@@ -106,10 +106,10 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				toEx		= NULL
 
 				*-- FILTRO LAS EXTENSIONES PERMITIDAS (EXCLUYO LOS DBFs Y DBCs)
-				loFB2P.EvaluarConfiguracion( '','','','','','','','', tcSourcePath )
+				loFB2P.evaluateConfiguration( '','','','','','','','', tcSourcePath )
 
 				DO CASE
-				CASE NOT loFB2P.TieneSoporte_Bin2Prg( lcExt )
+				CASE NOT loFB2P.hasSupport_Bin2Prg( lcExt )
 					.writeLog( '- Salteado por no tener soporte para conversión (' + tcSourcePath + ')' )
 
 				CASE loFB2P.wasProcessed( tcSourcePath )
@@ -126,9 +126,9 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 					lcDebug				= ''
 					lcDontShowProgress	= '1'
 					lcDontShowErrors	= '1'
-					*loFB2P.Ejecutar( tc_InputFile, tcType, tcTextName, tlGenText, tcDontShowErrors, tcDebug, tcDontShowProgress ;
+					*loFB2P.execute( tc_InputFile, tcType, tcTextName, tlGenText, tcDontShowErrors, tcDebug, tcDontShowProgress ;
 					, toModulo, toEx, tlRelanzarError, tcOriginalFileName, tcRecompile, tcNoTimestamps)
-					loFB2P.Ejecutar( tcSourcePath, 'BIN2PRG', '', '', lcDontShowErrors, lcDebug, lcDontShowProgress ;
+					loFB2P.execute( tcSourcePath, 'BIN2PRG', '', '', lcDontShowErrors, lcDebug, lcDontShowProgress ;
 						, '', '', .T., '', tcWorkspaceDir, '' )
 					llProcessed = .T.
 				ENDCASE
@@ -190,13 +190,13 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				.writeLog( 'Encontrados ' + TRANSFORM(lnFileCount) + ' archivos para filtrar y procesar' )
 				.writeLog( 'Se recompilará desde ' + lcWorkspaceDir )
 
-                loFB2P.cargar_frm_avance()
+                loFB2P.loadProgressbarForm()
 				loFB2P.o_Frm_Avance.CAPTION	= STRTRAN(loFB2P.o_Frm_Avance.CAPTION,'FoxBin2Prg','Bin>Prg') + ' - WKS [' + lcWorkspaceDir + ']'
 				loFB2P.o_Frm_Avance.ALWAYSONTOP = .T.
 				*loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
 
 				FOR I = 1 TO lnFileCount
-					loFB2P.o_Frm_Avance.AvanceDelProceso( 'Procesando ' + laFiles(I) +  '...', I, lnFileCount, 0 )
+					loFB2P.o_Frm_Avance.ProcessProgress( 'Procesando ' + laFiles(I) +  '...', I, lnFileCount, 0 )
 
 					IF .P_MakeText( @loException, laFiles(I), lcWorkspaceDir )
 						lnProcesados	= lnProcesados + 1
@@ -240,7 +240,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 
 		FINALLY
 			IF VARTYPE(loFB2P) = "O" AND NOT ISNULL(loFB2P) THEN
-				loFB2P.descargar_frm_avance(.T.)
+				loFB2P.unloadProgressbarForm(.T.)
 				loFB2P	= NULL
 			ENDIF
 
@@ -272,13 +272,13 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				.writeLog( 'Encontrados ' + TRANSFORM(lnFileCount) + ' archivos para filtrar y procesar' )
 				.writeLog( 'Se recompilará desde ' + lcWorkspaceDir )
 
-				loFB2P.cargar_frm_avance()
+				loFB2P.loadProgressbarForm()
 				loFB2P.o_Frm_Avance.CAPTION	= STRTRAN(loFB2P.o_Frm_Avance.CAPTION,'FoxBin2Prg','Bin>Prg') + ' - WKS [' + lcWorkspaceDir + ']'
 				loFB2P.o_Frm_Avance.ALWAYSONTOP = .T.
 				*loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
 
 				FOR I = 1 TO lnFileCount
-					loFB2P.o_Frm_Avance.AvanceDelProceso( 'Procesando ' + laFiles(I) +  '...', I, lnFileCount, 0 )
+					loFB2P.o_Frm_Avance.ProcessProgress( 'Procesando ' + laFiles(I) +  '...', I, lnFileCount, 0 )
 
 					IF .P_MakeText( @loException, laFiles(I), lcWorkspaceDir )
 						lnProcesados	= lnProcesados + 1
@@ -306,7 +306,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 
 		FINALLY
 			IF VARTYPE(loFB2P) = "O" AND NOT ISNULL(loFB2P) THEN
-				loFB2P.descargar_frm_avance(.T.)
+				loFB2P.unloadProgressbarForm(.T.)
 				loFB2P	= NULL
 			ENDIF
 

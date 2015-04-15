@@ -320,9 +320,9 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 					SET PROCEDURE TO ( lcFoxBin2PrgExe ) ADDITIVE
 				ENDIF
 				.o_FoxBin2Prg	= CREATEOBJECT("c_FoxBin2Prg")
-				*.o_FoxBin2Prg.EvaluarConfiguracion( tcDontShowProgress, tcDontShowErrors, tcNoTimestamps, tcDebug, tcRecompile, tcExtraBackupLevels, tcClearUniqueID, tcOptimizeByFilestamp, tc_InputFile )
-				*.o_FoxBin2Prg.EvaluarConfiguracion( '1', '1' )
-				.o_FoxBin2Prg.EvaluarConfiguracion( '1', '1', '', '', '', '', '', '', tcSourcePath )
+				*.o_FoxBin2Prg.evaluateConfiguration( tcDontShowProgress, tcDontShowErrors, tcNoTimestamps, tcDebug, tcRecompile, tcExtraBackupLevels, tcClearUniqueID, tcOptimizeByFilestamp, tc_InputFile )
+				*.o_FoxBin2Prg.evaluateConfiguration( '1', '1' )
+				.o_FoxBin2Prg.evaluateConfiguration( '1', '1', '', '', '', '', '', '', tcSourcePath )
 				.writeLog( 'Se evaluó la configuración para el archivo [' + TRANSFORM(tcSourcePath) + ']' )
 				.lDebug			= (.o_FoxBin2Prg.n_Debug > 0)	&& ( FILE( FORCEEXT( .cSys16, 'LOG' ) ) )
 				.writeLog( 'lDebug				=' + TRANSFORM(.lDebug) )
@@ -521,7 +521,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 						*-- REGENERO EL BINARIO Y RECOMPILO
 						IF INLIST( lcExt, loFB2P.c_VC2, loFB2P.c_SC2, loFB2P.c_FR2, loFB2P.c_LB2 )
 							.writeLog( '- Regenerando binario para archivo: ' + laStdIn(1,2) )
-							loFB2P.Ejecutar( laStdIn(1,2), '', '', '', '1', '1', '1', '', '', .T., '', lcWorkspaceDir, '1', '1' )
+							loFB2P.execute( laStdIn(1,2), '', '', '', '1', '1', '1', '', '', .T., '', lcWorkspaceDir, '1', '1' )
 						ENDIF
 
 
