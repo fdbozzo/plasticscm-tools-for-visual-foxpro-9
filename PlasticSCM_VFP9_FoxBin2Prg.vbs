@@ -61,10 +61,10 @@ Else
 	cEXETool	= Replace(WScript.ScriptFullName, WScript.ScriptName, "foxbin2prg.exe")
 	nFile_Count = 0
 	oVFP9.DoCmd( "SET PROCEDURE TO '" & cEXETool & "'" )
-	oVFP9.DoCmd( "PUBLIC oFoxBin2prg" )
-	oVFP9.DoCmd( "oFoxBin2prg = CREATEOBJECT('c_foxbin2prg')" )
-	oVFP9.DoCmd( "oFoxBin2prg.cargar_frm_avance()" )
-	oVFP9.DoCmd( "oFoxBin2prg.o_frm_avance.Caption = '" & FileSystemObject.GetBaseName( WScript.ScriptName ) & " - ' + oFoxBin2Prg.c_loc_process_progress" )
+	oVFP9.DoCmd( "PUBLIC o_FoxBin2prg" )
+	oVFP9.DoCmd( "o_FoxBin2prg = CREATEOBJECT('c_foxbin2prg')" )
+	oVFP9.DoCmd( "o_FoxBin2prg.loadProgressbarForm()" )
+	oVFP9.DoCmd( "o_FoxBin2prg.o_frm_avance.Caption = '" & FileSystemObject.GetBaseName( WScript.ScriptName ) & " - ' + o_FoxBin2prg.c_loc_process_progress" )
 	
 	cFlagGenerateLog		= "'0'"
 	cFlagDontShowErrMsg		= "'0'"
@@ -86,12 +86,12 @@ Else
 	
 	cFlagRecompile	= "'" & FileSystemObject.GetParentFolderName( WScript.Arguments(0) ) & "'"
 
-	oVFP9.DoCmd( "oFoxBin2prg.o_frm_avance.Caption = '" & FileSystemObject.GetBaseName( WScript.ScriptName ) & " - ' + oFoxBin2Prg.c_loc_process_progress + '  (Press Esc to Cancel)'" )
+	oVFP9.DoCmd( "o_FoxBin2prg.o_frm_avance.Caption = '" & FileSystemObject.GetBaseName( WScript.ScriptName ) & " - ' + o_FoxBin2prg.c_loc_process_progress + '  (Press Esc to Cancel)'" )
 	
 	If nDebug = 0 Or nDebug = 2 Then
-		cCMD	= "oFoxBin2prg.ejecutar( '" & WScript.Arguments(0) & "' )"
+		cCMD	= "o_FoxBin2prg.execute( '" & WScript.Arguments(0) & "' )"
 	Else
-		cCMD	= "oFoxBin2prg.ejecutar(  '" & WScript.Arguments(0) & "','INTERACTIVE','0','0'," _
+		cCMD	= "o_FoxBin2prg.execute(  '" & WScript.Arguments(0) & "','INTERACTIVE','0','0'," _
 			& cFlagDontShowErrMsg & "," & cFlagGenerateLog & ",'1','','',.F.,''," _
 			& cFlagRecompile & "," & cNoTimestamps & " )"
 	End If
@@ -106,27 +106,27 @@ Else
 		cEndOfProcessMsg		= oVFP9.Eval("_SCREEN.o_FoxBin2Prg_Lang.C_END_OF_PROCESS_LOC")
 		cWithErrorsMsg			= oVFP9.Eval("_SCREEN.o_FoxBin2Prg_Lang.C_WITH_ERRORS_LOC")
 		cConvCancelByUserMsg	= oVFP9.Eval("_SCREEN.o_FoxBin2Prg_Lang.C_CONVERSION_CANCELLED_BY_USER_LOC")
-		nProcessedFilesCount	= oVFP9.Eval("oFoxBin2prg.n_ProcessedFilesCount")
+		nProcessedFilesCount	= oVFP9.Eval("o_FoxBin2prg.n_ProcessedFilesCount")
 
-		If nExitCode = 1799 Then
-			MsgBox cConvCancelByUserMsg & "! [p:" & nProcessedFilesCount & "]", 48+4096, WScript.ScriptName & " (" & oVFP9.Eval("oFoxBin2prg.c_FB2PRG_EXE_Version") & ")"
-			oVFP9.DoCmd("oFoxBin2prg.writeErrorLog_Flush()")
-			cErrFile = oVFP9.Eval("oFoxBin2prg.c_ErrorLogFile")
-			WSHShell.run cErrFile,3
-
-		ElseIf oVFP9.Eval("oFoxBin2prg.l_Error") Then
-			MsgBox cEndOfProcessMsg & "! (" & cWithErrorsMsg & ") [p:" & nProcessedFilesCount & "]", 48+4096, WScript.ScriptName & " (" & oVFP9.Eval("oFoxBin2prg.c_FB2PRG_EXE_Version") & ")"
-			oVFP9.DoCmd("oFoxBin2prg.writeErrorLog_Flush()")
-			cErrFile = oVFP9.Eval("oFoxBin2prg.c_ErrorLogFile")
+		If oVFP9.Eval("o_FoxBin2prg.l_Error") Then
+			MsgBox cEndOfProcessMsg & "! (" & cWithErrorsMsg & ")", 48+4096, WScript.ScriptName & " (" & oVFP9.Eval("o_FoxBin2prg.c_FB2PRG_EXE_Version") & ")"
+			oVFP9.DoCmd("o_FoxBin2prg.writeErrorLog_Flush()")
+			cErrFile = oVFP9.Eval("o_FoxBin2prg.c_ErrorLogFile")
+			WSHShell.run cErrFile,3		'Show Error in Maximized Window
+		ElseIf nExitCode = 1799 Then
+			MsgBox cConvCancelByUserMsg & "!", 64+4096, WScript.ScriptName & " (" & oVFP9.Eval("o_FoxBin2prg.c_FB2PRG_EXE_Version") & ")"
+			oVFP9.DoCmd("o_FoxBin2prg.writeErrorLog_Flush()")
+			cErrFile = oVFP9.Eval("o_FoxBin2prg.c_ErrorLogFile")
 			WSHShell.run cErrFile,3
 		Else
-			MsgBox cEndOfProcessMsg & "! [p:" & nProcessedFilesCount & "]", 64+4096, WScript.ScriptName & " (" & oVFP9.Eval("oFoxBin2prg.c_FB2PRG_EXE_Version") & ")"
+			MsgBox cEndOfProcessMsg & "!", 64+4096, WScript.ScriptName & " (" & oVFP9.Eval("o_FoxBin2prg.c_FB2PRG_EXE_Version") & ")"
 		End If
 	End If
 
-	oVFP9.DoCmd( "oFoxBin2prg = NULL" )
+	oVFP9.DoCmd( "o_FoxBin2prg = NULL" )
 	oVFP9.DoCmd( "CLEAR ALL" )
 	Set oVFP9 = Nothing
+	WshShell.AppActivate("Plastic")
 	wshShell.SendKeys("{F5}")
 End If
 

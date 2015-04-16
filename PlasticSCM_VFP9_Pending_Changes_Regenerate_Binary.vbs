@@ -37,27 +37,35 @@ oVFP9.DoCmd( "oTarea = CREATEOBJECT('CL_SCM_2_LIB')" )
 oVFP9.DoCmd( "oTarea.ProcesarArchivosPendientes('" & WScript.Arguments(0) & "')" )
 
 If GetBit(nFlags, 4) Then
-	cEndOfProcessMsg		= oVFP9.Eval("_SCREEN.o_FoxBin2Prg_Lang.C_END_OF_PROCESS_LOC")
-	cWithErrorsMsg			= oVFP9.Eval("_SCREEN.o_FoxBin2Prg_Lang.C_WITH_ERRORS_LOC")
-	cConvCancelByUserMsg	= oVFP9.Eval("_SCREEN.o_FoxBin2Prg_Lang.C_CONVERSION_CANCELLED_BY_USER_LOC")
+	cEndOfProcessMsg		= oVFP9.Eval("_SCREEN.o_FoxBin2prg_Lang.C_END_OF_PROCESS_LOC")
+	cWithErrorsMsg			= oVFP9.Eval("_SCREEN.o_FoxBin2prg_Lang.C_WITH_ERRORS_LOC")
+	cConvCancelByUserMsg	= oVFP9.Eval("_SCREEN.o_FoxBin2prg_Lang.C_CONVERSION_CANCELLED_BY_USER_LOC")
 	nProcessedFilesCount	= oVFP9.Eval("oTarea.o_FoxBin2prg.n_ProcessedFilesCount")
 
 	If oVFP9.Eval("oTarea.l_Error") Then
-		MsgBox cEndOfProcessMsg & "! (" & cWithErrorsMsg & ") [p:" & nProcessedFilesCount & "]" & Chr(13) & Chr(13) & oVFP9.Eval("oTarea.c_TextError"), 48+4096, WScript.ScriptName
-	ElseIf oVFP9.Eval("oTarea.o_FoxBin2Prg.l_Error") Then
-		MsgBox cEndOfProcessMsg & "! (" & cWithErrorsMsg & ") [p:" & nProcessedFilesCount & "]", 48+4096, WScript.ScriptName & " (" & oVFP9.Eval("oTarea.o_FoxBin2prg.c_FB2PRG_EXE_Version") & ")"
-		oVFP9.DoCmd("oTarea.o_FoxBin2prg.writeErrorLog_Flush()")
-		cErrFile = oVFP9.Eval("oTarea.o_FoxBin2prg.c_ErrorLogFile")
-		WSHShell.run cErrFile,3
+		nExitCode = 1
+		MsgBox cEndOfProcessMsg & "! (" & cWithErrorsMsg & ")" & Chr(13) & Chr(13) & oVFP9.Eval("oTarea.c_TextError"), 48+4096, WScript.ScriptName
+	ElseIf oVFP9.Eval("oTarea.o_FoxBin2prg.l_Error") Then
+		nExitCode = oVFP9.Eval("_SCREEN.ExitCode")
+		If nExitCode = 1799 Then
+			MsgBox cConvCancelByUserMsg & "!", 64+4096, WScript.ScriptName & " (" & oVFP9.Eval("oTarea.o_FoxBin2prg.c_FB2PRG_EXE_Version") & ")"
+		Else
+			MsgBox cEndOfProcessMsg & "! (" & cWithErrorsMsg & ")", 48+4096, WScript.ScriptName & " (" & oVFP9.Eval("oTarea.o_FoxBin2prg.c_FB2PRG_EXE_Version") & ")"
+			oVFP9.DoCmd("oTarea.o_FoxBin2prg.writeErrorLog_Flush()")
+			cErrFile = oVFP9.Eval("oTarea.o_FoxBin2prg.c_ErrorLogFile")
+			WSHShell.run cErrFile,3		'Show Error in Maximized Window
+		End If
 	ElseIf oVFP9.Eval("oTarea.c_TextError") <> "" Then
+		nExitCode = 1
 		MsgBox cEndOfProcessMsg & "!" & Chr(13) & Chr(13) & oVFP9.Eval("oTarea.c_TextError"), 64+4096, WScript.ScriptName
 	Else
-		MsgBox cEndOfProcessMsg & "! [p:" & nProcessedFilesCount & "]", 64+4096, WScript.ScriptName
+		MsgBox cEndOfProcessMsg & "!", 64+4096, WScript.ScriptName
 	End If
 End If
 
 oVFP9.DoCmd( "CLEAR ALL" )
 Set oVFP9 = Nothing
+WshShell.AppActivate("Plastic")
 wshShell.SendKeys("{F5}")
 WScript.Quit nExitCode
 
