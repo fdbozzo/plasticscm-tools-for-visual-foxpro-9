@@ -196,7 +196,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				*loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
 
 				FOR I = 1 TO lnFileCount
-					loFB2P.o_Frm_Avance.ProcessProgress( 'Procesando ' + laFiles(I) +  '...', I, lnFileCount, 0 )
+					loFB2P.o_Frm_Avance.updateProgressbar( 'Procesando ' + laFiles(I) +  '...', I, lnFileCount, 0 )
 
 					IF .P_MakeText( @loException, laFiles(I), lcWorkspaceDir )
 						lnProcesados	= lnProcesados + 1
@@ -278,7 +278,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 				*loFB2P.o_Frm_Avance.ALWAYSONTOP = .F.
 
 				FOR I = 1 TO lnFileCount
-					loFB2P.o_Frm_Avance.ProcessProgress( 'Procesando ' + laFiles(I) +  '...', I, lnFileCount, 0 )
+					loFB2P.o_Frm_Avance.updateProgressbar( 'Procesando ' + laFiles(I) +  '...', I, lnFileCount, 0 )
 
 					IF .P_MakeText( @loException, laFiles(I), lcWorkspaceDir )
 						lnProcesados	= lnProcesados + 1
