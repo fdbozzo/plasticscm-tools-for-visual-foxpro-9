@@ -108,7 +108,7 @@ Else
 		cConvCancelByUserMsg	= oVFP9.Eval("_SCREEN.o_FoxBin2Prg_Lang.C_CONVERSION_CANCELLED_BY_USER_LOC")
 		nProcessedFilesCount	= oVFP9.Eval("o_FoxBin2prg.n_ProcessedFilesCount")
 
-		If oVFP9.Eval("o_FoxBin2prg.l_Error") Then
+		If oVFP9.Eval("o_FoxBin2prg.l_Errors") Then
 			MsgBox cEndOfProcessMsg & "! (" & cWithErrorsMsg & ")", 48+4096, WScript.ScriptName & " (" & oVFP9.Eval("o_FoxBin2prg.c_FB2PRG_EXE_Version") & ")"
 			oVFP9.DoCmd("o_FoxBin2prg.writeErrorLog_Flush()")
 			cErrFile = oVFP9.Eval("o_FoxBin2prg.c_ErrorLogFile")

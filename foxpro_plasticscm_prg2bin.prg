@@ -138,21 +138,7 @@ DEFINE CLASS CL_SCM_2_LIB AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.EXE'
 
 		CATCH TO toEx WHEN toEx.ErrorNo = 1799	&& Conversion Cancelled
 
-		CATCH TO toEx WHEN NOT INLIST(toEx.ErrorNo, 1098, 2071)	&& Errores no controlados
-			THROW
-
-		CATCH TO toEx
-			THIS.l_Error		= .T.
-			lcMenError	= 'CurDir: ' + SYS(5)+CURDIR() + CR_LF ;
-				+ 'Error ' + TRANSFORM(toEx.ERRORNO) + ', ' + toEx.MESSAGE + CR_LF ;
-				+ toEx.PROCEDURE + ', line ' + TRANSFORM(toEx.LINENO) + CR_LF ;
-				+ toEx.LINECONTENTS + CR_LF ;
-				+ toEx.USERVALUE
-			THIS.c_TextError	= lcMenError
-			THIS.writeLog( lcMenError )
-			IF _VFP.STARTMODE = 0
-				MESSAGEBOX( lcMenError, 0+16+4096, "ATENCIÓN!!", 60000 )
-			ENDIF
+		CATCH TO toEx WHEN INLIST(toEx.ErrorNo, 1098, 2071)	&& Errores controlados
 
 		FINALLY
 			STORE NULL TO loFB2P

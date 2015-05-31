@@ -45,7 +45,7 @@ If GetBit(nFlags, 4) Then
 	If oVFP9.Eval("oTarea.l_Error") Then
 		nExitCode = 1
 		MsgBox cEndOfProcessMsg & "! (" & cWithErrorsMsg & ")" & Chr(13) & Chr(13) & oVFP9.Eval("oTarea.c_TextError"), 48+4096, WScript.ScriptName
-	ElseIf oVFP9.Eval("oTarea.o_FoxBin2prg.l_Error") Then
+	ElseIf oVFP9.Eval("oTarea.o_FoxBin2prg.l_Errors") Then
 		nExitCode = oVFP9.Eval("_SCREEN.ExitCode")
 		If nExitCode = 1799 Then
 			MsgBox cConvCancelByUserMsg & "!", 64+4096, WScript.ScriptName & " (" & oVFP9.Eval("oTarea.o_FoxBin2prg.c_FB2PRG_EXE_Version") & ")"

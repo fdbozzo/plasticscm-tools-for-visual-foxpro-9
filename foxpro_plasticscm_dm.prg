@@ -323,6 +323,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 				*.o_FoxBin2Prg.evaluateConfiguration( tcDontShowProgress, tcDontShowErrors, tcNoTimestamps, tcDebug, tcRecompile, tcExtraBackupLevels, tcClearUniqueID, tcOptimizeByFilestamp, tc_InputFile )
 				*.o_FoxBin2Prg.evaluateConfiguration( '1', '1' )
 				.o_FoxBin2Prg.evaluateConfiguration( '1', '1', '', '', '', '', '', '', tcSourcePath )
+				.o_FoxBin2Prg.l_AutoClearProcessedFiles	= .F.
 				.writeLog( 'Se evaluó la configuración para el archivo [' + TRANSFORM(tcSourcePath) + ']' )
 				.lDebug			= (.o_FoxBin2Prg.n_Debug > 0)	&& ( FILE( FORCEEXT( .cSys16, 'LOG' ) ) )
 				.writeLog( 'lDebug				=' + TRANSFORM(.lDebug) )
@@ -1732,7 +1733,7 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 
 		WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 			=RAND(-100000)
-			lcTempFile	= '"' + FORCEPATH('cm' + SYS(2015) + '_' + TRANSFORM(RAND()*100000,'@L ######') + '.txt', SYS(2023)) + '"'
+			lcTempFile	= '"' + FORCEPATH('plastic_changed_list' + SYS(2015) + '_' + TRANSFORM(RAND()*100000,'@L ######') + '.txt', SYS(2023)) + '"'
 			lcCmd		= GETENV('ComSpec') + ' /C ' + JUSTFNAME(.cCM) + ' fc -R "' + tcWorkspaceDir + '" > ' + lcTempFile
 			.writeLog()
 			.writeLog( '- Obteniendo cambios pendientes' )
