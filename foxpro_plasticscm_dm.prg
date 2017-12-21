@@ -1734,7 +1734,9 @@ DEFINE CLASS CL_SCM_LIB AS SESSION
 		WITH THIS AS CL_SCM_LIB OF 'FOXPRO_PLASTICSCM_DM.PRG'
 			=RAND(-100000)
 			lcTempFile	= '"' + FORCEPATH('plastic_changed_list' + SYS(2015) + '_' + TRANSFORM(RAND()*100000,'@L ######') + '.txt', SYS(2023)) + '"'
-			lcCmd		= GETENV('ComSpec') + ' /C ' + JUSTFNAME(.cCM) + ' fc -R "' + tcWorkspaceDir + '" > ' + lcTempFile
+			*lcCmd		= GETENV('ComSpec') + ' /C ' + JUSTFNAME(.cCM) + ' fc -R "' + tcWorkspaceDir + '" > ' + lcTempFile
+			* Esta sintaxis trae los cambiados, reemplazados y desprotegidos (lista más completa)
+			lcCmd		= GETENV('ComSpec') + ' /C ' + JUSTFNAME(.cCM) + ' status "' + tcWorkspaceDir + '" --changed --replaced --checkout --short > ' + lcTempFile
 			.writeLog()
 			.writeLog( '- Obteniendo cambios pendientes' )
 			.writeLog( lcCmd )
