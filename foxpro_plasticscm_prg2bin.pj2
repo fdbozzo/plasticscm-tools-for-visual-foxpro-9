@@ -26,7 +26,7 @@ _LegalTrademark = "Creative Commons 4:	Reconocimiento - CompartirIgual (by-sa): 
 _ProductName = "FOXPRO_PLASTICSCM_PRG2BIN"
 _MajorVer = "2"
 _MinorVer = "5"
-_Revision = "49"
+_Revision = "50"
 _LanguageID = "1034"
 _AutoIncrement = "0"
 *</DevInfo>
@@ -50,10 +50,10 @@ MODIFY PROJECT 'foxpro_plasticscm_prg2bin.pjx' NOWAIT NOSHOW NOPROJECTHOOK
 loProject = _VFP.Projects('foxpro_plasticscm_prg2bin.pjx')
 
 WITH loProject.FILES
-	.ADD('config\config.fpw')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('foxpro_plasticscm_dm.exe')		&& *< FileMetadata: Type="Z" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('foxpro_plasticscm_dm.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('foxpro_plasticscm_prg2bin.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
+	.ADD('config\config.fpw')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" />
+	.ADD('foxpro_plasticscm_dm.exe')		&& *< FileMetadata: Type="Z" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" />
+	.ADD('foxpro_plasticscm_dm.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" />
+	.ADD('foxpro_plasticscm_prg2bin.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" />
 	*</BuildProj>
 
 	.ITEM('__newproject.f2b').Remove()
@@ -79,6 +79,7 @@ WITH loProject
 	*<.CmntStyle = 1 />
 	*<.NoLogo = .F. />
 	*<.SaveCode = .T. />
+	*<.User = '' />
 	.ProjectHookLibrary = ''
 	.ProjectHookClass = ''
 	*</ProjectProperties>
